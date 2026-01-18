@@ -1,4 +1,4 @@
-package com.pranta.ecommerce;
+package com.pranta.ecommerce.Repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

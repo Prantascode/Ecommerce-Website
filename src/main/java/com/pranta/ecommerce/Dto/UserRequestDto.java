@@ -1,5 +1,7 @@
 package com.pranta.ecommerce.Dto;
 
+import javax.management.relation.Role;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -21,4 +23,7 @@ public class UserRequestDto {
 
     @NotBlank
     private String password;
+
+    @NotBlank
+    private Role role;
 }
