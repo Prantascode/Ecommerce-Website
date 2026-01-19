@@ -1,5 +1,8 @@
 package com.pranta.ecommerce.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,4 +33,26 @@ public class UserService {
             saveUser.getEmail()
         );
     }
+     
+    public List<UserResponseDto> getAllUsers() {
+        return userRepository.findAll()
+                .stream()
+                .map(user -> new UserResponseDto(
+                        user.getId(),
+                        user.getName(),
+                        user.getEmail()))
+                .collect(Collectors.toList());
+    }
+
+    public UserResponseDto getUserById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return new UserResponseDto(
+                user.getId(),
+                user.getName(),
+                user.getEmail()
+        );
+    }
 }
+
