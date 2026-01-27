@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -33,7 +35,7 @@ public class Product {
     @Column(nullable = false)
     private String description;
 
-    @NotBlank(message = "Price is Required")
+    @NotNull(message = "Price is Required")
     @Column(nullable = false,precision = 10, scale = 2)
     private BigDecimal price;
 
@@ -41,7 +43,13 @@ public class Product {
     @Column(nullable = false)
     private String imageUrl;
 
-    @NotNull
-    private String stock;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Stock stock;
+
+    public enum Stock{
+        AVAILABLE,
+        STOCKOUT
+    }
 
 }

@@ -2,6 +2,8 @@ package com.pranta.ecommerce.Dto;
 
 import java.math.BigDecimal;
 
+import com.pranta.ecommerce.Entity.Product.Stock;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -21,12 +23,12 @@ public class ProductRequestDto {
     @NotBlank(message = "Description is Required")
     private String description;
 
-    @NotBlank(message = "Price is Required")
+    @NotNull(message = "Price is Required")
     private BigDecimal price;
 
     @NotBlank(message = "Image url is Required")
     private String imageUrl;
 
-    @NotNull
-    private String stock;
+    @NotNull(message = "Stock is required")
+    private Stock stock;
 }
