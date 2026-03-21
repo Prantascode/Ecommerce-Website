@@ -1,5 +1,6 @@
 package com.pranta.ecommerce.Dto;
 
+
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -13,5 +14,6 @@ public class OderItemRequestDto {
 
     @NotNull
     private Integer quantity;
+
 }
 

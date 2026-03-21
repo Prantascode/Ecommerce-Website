@@ -1,34 +1,30 @@
 package com.pranta.ecommerce.Entity;
 
-import jakarta.persistence.Entity;
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
-@Table(name = "cart_item")
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CartItem {
+public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "Cart_id", nullable = false)
-    private Cart cart;
-                
-    @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    @OneToOne
+    @JoinColumn(name = "user_id",nullable = false)
+    private User user;
 
-    private Integer quantity;
+    @OneToMany(mappedBy = "cart",cascade = CascadeType.ALL)
+    private List<CartItem> items;
 }

@@ -11,9 +11,11 @@ import com.pranta.ecommerce.Dto.OrderItemResponseDto;
 import com.pranta.ecommerce.Entity.Order;
 import com.pranta.ecommerce.Entity.OrderItem;
 import com.pranta.ecommerce.Entity.Product;
+import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Repository.OderItemRepository;
 import com.pranta.ecommerce.Repository.OrderRepository;
 import com.pranta.ecommerce.Repository.ProductRepository;
+import com.pranta.ecommerce.Repository.UserRepository;
 
 @Service
 public class OderItemService {
@@ -25,13 +27,14 @@ public class OderItemService {
     @Autowired
     private ProductRepository productRepository;
 
-    public OrderItemResponseDto createOrderItem(OderItemRequestDto dto) {
+    public OrderItemResponseDto addOrderItem(OderItemRequestDto dto) {
 
         Order order = orderRepository.findById(dto.getOrderId())
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
         Product product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
+        
 
         OrderItem orderItem = new OrderItem();
         orderItem.setOrder(order);
@@ -43,9 +46,8 @@ public class OderItemService {
         return mapToResponse(savedItem);
     }
 
-   
-    public List<OrderItemResponseDto> getItemsByOrder(Order order) {
-        return orderItemRepository.findByOrder(order)
+    public List<OrderItemResponseDto> getItemsByOrder(Long orderId,Order order) {
+        return orderItemRepository.findByOrder(orderId)
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -57,7 +59,8 @@ public class OderItemService {
                 item.getProduct().getId(),
                 item.getProduct().getName(),
                 item.getQuantity(),
-                item.getPrice()
+                item.getPrice(),
+                item.getOrder().getId()
         );
     }
 }

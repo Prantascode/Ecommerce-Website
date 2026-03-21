@@ -1,14 +1,11 @@
 package com.pranta.ecommerce.Repository;
 
-import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.pranta.ecommerce.Entity.CartItem;
-import com.pranta.ecommerce.Entity.User;
+import com.pranta.ecommerce.Entity.Cart;
 
-public interface CartRepository extends JpaRepository<CartItem,Long> {
-    List<CartItem> findByUser(User user);
-
-    void deleteByUser(User user);
+public interface CartRepository extends JpaRepository<Cart,Long> {
+    Optional<Cart> findByUserId(Long userId);
 }
