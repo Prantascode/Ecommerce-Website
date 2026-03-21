@@ -2,9 +2,6 @@ package com.pranta.ecommerce.Dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
-
-import com.pranta.ecommerce.Entity.OrderItem;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
