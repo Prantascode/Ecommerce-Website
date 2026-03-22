@@ -7,5 +7,5 @@ import com.pranta.ecommerce.Entity.CartItem;
 
 
 public interface CartItemRepository extends JpaRepository<CartItem, Long> {
-    Optional<CartItem> findById(Long Cart_id);
+    Optional<CartItem> findByCartIdAndProductId(Long cartId, Long productId);
 }
