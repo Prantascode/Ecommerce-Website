@@ -76,6 +76,21 @@ public class CartService {
         return new CartResponseDto(itemDtos, grandTotal);
     }
 
+    public CartItemResponseDto updateCartItemQuantity(Long userId,Long productId,Integer newQauntity){
+
+        Cart cart = cartRepository.findByUserId(userId)
+            .orElseThrow(() -> new RuntimeException("Cart not found"));
+        
+        CartItem item = cartItemRepository.findByCartIdAndProductId(cart.getId(), productId)
+            .orElseThrow(() -> new RuntimeException("Item not found"));
+
+        item.setQuantity(newQauntity);
+        item.setTotalPrice(item.getPrice().multiply(new BigDecimal(newQauntity)));
+
+        return mapToDto(cartItemRepository.save(item));
+    }
+
+
     private CartItemResponseDto mapToDto(CartItem item){
         CartItemResponseDto dto = new CartItemResponseDto();
         dto.setId(item.getId());
