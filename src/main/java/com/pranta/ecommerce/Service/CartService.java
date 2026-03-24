@@ -17,6 +17,7 @@ import com.pranta.ecommerce.Repository.CartRepository;
 import com.pranta.ecommerce.Repository.ProductRepository;
 import com.pranta.ecommerce.Repository.UserRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -89,7 +90,13 @@ public class CartService {
 
         return mapToDto(cartItemRepository.save(item));
     }
+    @Transactional
+    public void clearCart(Long userId){
+        Cart cart = cartRepository.findByUserId(userId)
+            .orElseThrow(() -> new RuntimeException("Cart not found"));
 
+        cartItemRepository.deleteByCartId(cart.getId());
+    }
 
     private CartItemResponseDto mapToDto(CartItem item){
         CartItemResponseDto dto = new CartItemResponseDto();

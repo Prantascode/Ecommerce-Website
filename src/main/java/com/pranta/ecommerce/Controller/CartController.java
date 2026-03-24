@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,5 +49,10 @@ public class CartController {
         Integer quantity = UpdateQuantity.get("quantity");
         return ResponseEntity.ok(cartService.updateCartItemQuantity(userId, productId, quantity));
         
+    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> clearCart(@PathVariable Long id){
+        cartService.clearCart(id);
+        return ResponseEntity.ok("Item deleted");
     }
 }
