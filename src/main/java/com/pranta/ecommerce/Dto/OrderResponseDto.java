@@ -2,6 +2,7 @@ package com.pranta.ecommerce.Dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,5 +18,7 @@ public class OrderResponseDto {
 
     private String status;  
 
-    private LocalDateTime createdAt;
+    private LocalDateTime orderDate;
+
+    private List<OrderItemResponseDto> orderItems;
 }

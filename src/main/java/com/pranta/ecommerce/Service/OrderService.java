@@ -1,15 +1,22 @@
 package com.pranta.ecommerce.Service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.pranta.ecommerce.Dto.OrderItemResponseDto;
 import com.pranta.ecommerce.Dto.OrderRequestDto;
 import com.pranta.ecommerce.Dto.OrderResponseDto;
+import com.pranta.ecommerce.Entity.Cart;
 import com.pranta.ecommerce.Entity.Order;
-import com.pranta.ecommerce.Entity.User;
+import com.pranta.ecommerce.Entity.OrderItem;
+import com.pranta.ecommerce.Repository.CartRepository;
 import com.pranta.ecommerce.Repository.OderItemRepository;
 import com.pranta.ecommerce.Repository.OrderRepository;
-import com.pranta.ecommerce.Repository.UserRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class OrderService {
@@ -18,33 +25,93 @@ public class OrderService {
     private OrderRepository orderRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private CartRepository cartRepository;
+
+    @Autowired
+    private OrderItemService orderItemService;
 
     @Autowired
     private OderItemRepository oderItemRepository;
 
+    @Transactional
     public OrderResponseDto createOrder(OrderRequestDto dto ){
+        
+        Cart cart = cartRepository.findByUserId(dto.getUserId())
+                    .orElseThrow(() -> new RuntimeException("Cart not found"));
 
-        User user = userRepository.findById(dto.getUserId())
-                    .orElseThrow(()-> new RuntimeException("User not Found"));
+        if (cart.getItems().isEmpty()) {
+            throw new RuntimeException("Cart is empty");
+        }
         
         Order order = new Order();
-        order.setUser(user);
-        order.setTotalAmount(dto.getTotalAmount());
-        order.setStatus(dto.getStatus());
-        order.setCreatedAt(dto.getCreatedAt());
+        order.setUser(cart.getUser());
+        order.setTotalAmount(cart.getGrandTotal());
+        order.setStatus("PENDING");
+        order.setOrderDate(LocalDateTime.now());
         Order savedOrder = orderRepository.save(order);
 
-        return mapToResponse(savedOrder);
+        List<OrderItemResponseDto> orderItemDtos = orderItemService
+            .convertCartItemToOrderItem(cart.getItems(), savedOrder);
+
+        cart.getItems().clear();
+        cartRepository.save(cart);
+
+        return mapToResponse(savedOrder, orderItemDtos);
     }
 
-    private OrderResponseDto mapToResponse(Order order){
+    //Order histroy by user
+    public List<OrderResponseDto> getOrderDetailsByUserId(Long userId){
+        List<Order> orders =  orderRepository.findAllByUserIdOrderByOrderDateDesc(userId);
+                return orders.stream()
+            .map(order -> {
+                List<OrderItemResponseDto> items = mapToOrderItem(order.getItems());
+                return mapToResponse(order, items);
+            })
+            .toList();              
+    }
+
+    // get order by id
+    public OrderResponseDto getOrderById(Long orderId){
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        List<OrderItemResponseDto> items = mapToOrderItem(order.getItems());
+
+        return mapToResponse(order, items);
+    }
+    //update order
+    public OrderResponseDto updateOrderStatus(Long orderId, String newStatus){
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        
+        order.setStatus(newStatus);
+        Order updateOrder = orderRepository.save(order);
+
+        return mapToResponse(updateOrder, mapToOrderItem(updateOrder.getItems()));
+    }
+
+
+    private OrderResponseDto mapToResponse(Order order, List<OrderItemResponseDto> orderItems){
         return new OrderResponseDto(
             order.getId(),
             order.getUser().getId(),
             order.getTotalAmount(),
             order.getStatus(),
-            order.getCreatedAt()
+            order.getOrderDate(),
+            orderItems
+
         );
+    }
+
+    private List<OrderItemResponseDto> mapToOrderItem(List<OrderItem> items){
+        return items.stream()
+                .map(item -> new OrderItemResponseDto(
+                    item.getId(),
+                    item.getProduct().getId(),
+                    item.getProduct().getName(),
+                    item.getQuantity(),
+                    item.getPrice(),
+                    item.getOrder().getId()
+                )).toList();
     }
 }

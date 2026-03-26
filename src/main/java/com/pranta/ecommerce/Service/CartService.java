@@ -60,6 +60,13 @@ public class CartService {
         item.setTotalPrice(total);
 
         CartItem savedItem = cartItemRepository.save(item);
+           
+        BigDecimal newGrandTotal = cart.getItems().stream()
+            .map(CartItem::getTotalPrice)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        cart.setGrandTotal(newGrandTotal);
+        cartRepository.save(cart);
+
         return mapToDto(savedItem);
     }
     public CartResponseDto getCartByUserId(Long userId){
