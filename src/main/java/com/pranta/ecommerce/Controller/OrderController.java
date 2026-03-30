@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.pranta.ecommerce.Dto.OrderRequestDto;
 import com.pranta.ecommerce.Dto.OrderResponseDto;
-import com.pranta.ecommerce.Entity.Order;
 import com.pranta.ecommerce.Service.OrderService;
 
 import jakarta.validation.Valid;
