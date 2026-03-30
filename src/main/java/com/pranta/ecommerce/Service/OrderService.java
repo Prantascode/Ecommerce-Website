@@ -13,7 +13,6 @@ import com.pranta.ecommerce.Entity.Cart;
 import com.pranta.ecommerce.Entity.Order;
 import com.pranta.ecommerce.Entity.OrderItem;
 import com.pranta.ecommerce.Repository.CartRepository;
-import com.pranta.ecommerce.Repository.OderItemRepository;
 import com.pranta.ecommerce.Repository.OrderRepository;
 
 import jakarta.transaction.Transactional;
@@ -29,9 +28,6 @@ public class OrderService {
 
     @Autowired
     private OrderItemService orderItemService;
-
-    @Autowired
-    private OderItemRepository oderItemRepository;
 
     @Transactional
     public OrderResponseDto createOrder(OrderRequestDto dto ){
