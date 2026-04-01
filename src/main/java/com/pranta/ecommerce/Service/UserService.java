@@ -16,23 +16,6 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
-
-    public UserResponseDto createUser(UserRequestDto dto){
-
-        User user = new User();
-        user.setName(dto.getName());
-        user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
-        user.setRole(User.Role.USER);
-
-        User saveUser = userRepository.save(user);
-        
-        return new UserResponseDto(
-            saveUser.getId(),
-            saveUser.getName(),
-            saveUser.getEmail()
-        );
-    }
      
     public List<UserResponseDto> getAllUsers() {
         return userRepository.findAll()
@@ -40,7 +23,8 @@ public class UserService {
                 .map(user -> new UserResponseDto(
                         user.getId(),
                         user.getName(),
-                        user.getEmail()))
+                        user.getEmail(),
+                        user.getRole()))
                 .collect(Collectors.toList());
     }
 
@@ -51,7 +35,8 @@ public class UserService {
         return new UserResponseDto(
                 user.getId(),
                 user.getName(),
-                user.getEmail()
+                user.getEmail(),
+                user.getRole()
         );
     }
 }
