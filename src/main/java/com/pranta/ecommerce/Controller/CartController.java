@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,16 +31,19 @@ public class CartController {
     @Autowired
     private CartService cartService;
 
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/add")
     public ResponseEntity<CartItemResponseDto> addToCart(@Valid @RequestBody CartItemRequestDto itemRequestDto){
         return new ResponseEntity<>(cartService.addToCart(itemRequestDto),HttpStatus.CREATED);
     }
-
+    
+    @PreAuthorize("@userSecurity.isCurrentUserId(#userId, authenticatio.name)")
     @GetMapping("/userId/{userId}")
     public ResponseEntity<CartResponseDto> getCartByUserId(@PathVariable Long userId){
         return ResponseEntity.ok(cartService.getCartByUserId(userId));
     }
 
+    @PreAuthorize("@userSecurity.isCurrentUserId(#userId, authentication.name)")
     @PutMapping("/userId/{userId}/edit/{productId}")
     public ResponseEntity<CartItemResponseDto> updateCartItemQuantity(
         @PathVariable Long userId,
@@ -50,6 +54,8 @@ public class CartController {
         return ResponseEntity.ok(cartService.updateCartItemQuantity(userId, productId, quantity));
         
     }
+
+    @PreAuthorize("@cartSecurity.isCartOwner(#id, authentication.name)")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> clearCart(@PathVariable Long id){
         cartService.clearCart(id);

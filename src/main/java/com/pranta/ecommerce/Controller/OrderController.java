@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,22 +29,25 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/create")
     public ResponseEntity<OrderResponseDto> createOrder(@Valid @RequestBody OrderRequestDto dto){
-        return new ResponseEntity<>(orderService.createOrder(dto),HttpStatus.CREATED
-    );
+        return new ResponseEntity<>(orderService.createOrder(dto),HttpStatus.CREATED);
     }
 
+    @PreAuthorize("hasRole('ADMIN') or @userSecurity.isCurrentUserId(#userId, authentication.name)")
     @GetMapping("/userId/{userId}")
     public ResponseEntity<List<OrderResponseDto>> getOrderDetailsByUserId(@PathVariable Long userId){
         return ResponseEntity.ok(orderService.getOrderDetailsByUserId(userId));
     }
 
+    @PreAuthorize("hasRole('ADMIN') or @orderSecurity.isOwner(#orderID, authentication.name)")
     @GetMapping("/orderId/{orderId}")
     public ResponseEntity<OrderResponseDto> getOrderById(@PathVariable Long orderId){
         return ResponseEntity.ok(orderService.getOrderById(orderId));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/update/{orderId}")
     public ResponseEntity<OrderResponseDto> updateOrderStatus(@PathVariable Long orderId,@RequestBody Map<String, String> request){
         String newStatus = request.get("status");

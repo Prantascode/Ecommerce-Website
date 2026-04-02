@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.pranta.ecommerce.Dto.UserRequestDto;
 import com.pranta.ecommerce.Dto.UserResponseDto;
 import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Repository.UserRepository;
@@ -38,6 +37,20 @@ public class UserService {
                 user.getEmail(),
                 user.getRole()
         );
+    }
+
+    public void deactivateUser(Long userId){
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new RuntimeException("User not found"));
+        user.setActive(false);
+        userRepository.save(user);
+    }
+
+    public void activateUser(Long userId){
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new RuntimeException("User not found"));
+        user.setActive(true);
+        userRepository.save(user);
     }
 }
 

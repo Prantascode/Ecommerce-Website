@@ -44,4 +44,6 @@ public class User {
     public enum Role{
         USER, ADMIN;
     }
+
+    private boolean active;
 }
