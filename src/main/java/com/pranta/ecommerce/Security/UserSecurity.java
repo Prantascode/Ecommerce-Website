@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 import com.pranta.ecommerce.Repository.UserRepository;
 
-@Component("userSecrity")
+@Component("userSecurity")
 public class UserSecurity {
     
     @Autowired

@@ -32,6 +32,7 @@ public class AuthService {
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setRole(User.Role.USER);
+        user.setActive(true);
 
         User saveUser = userRepository.save(user);
         
@@ -61,6 +62,7 @@ public class AuthService {
         dto.setName(user.getName());
         dto.setEmail(user.getEmail());
         dto.setRole(user.getRole());
+        dto.setActive(user.isActive());
 
         return dto;
 

@@ -29,54 +29,53 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
 
-   public CartItemResponseDto addToCart(CartItemRequestDto request) {
-        User user = userRepository.findById(request.getUserId())
-            .orElseThrow(() -> new RuntimeException("User Not Found"));
+    public CartItemResponseDto addToCart(CartItemRequestDto request, String email) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Cart cart = cartRepository.findByUserId(request.getUserId())
+        Cart cart = cartRepository.findByUserId(user.getId())
             .orElseGet(() -> {
                 Cart newCart = new Cart();
                 newCart.setUser(user);
+                newCart.setGrandTotal(BigDecimal.ZERO);
                 return cartRepository.save(newCart);
             });
 
         Product product = productRepository.findById(request.getProductId())
-            .orElseThrow(() -> new RuntimeException("Product Not Found"));
+            .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        CartItem item = cartItemRepository
-            .findByCartIdAndProductId(cart.getId(), product.getId())
-            .orElse(new CartItem());
+        CartItem item = cartItemRepository.findByCartIdAndProductId(cart.getId(), product.getId())
+            .orElseGet(() -> {
+                CartItem newItem = new CartItem();
+                newItem.setCart(cart);
+                newItem.setProduct(product);
+                newItem.setQuantity(0);
+                return newItem;
+            });
 
-        if (item.getId() == null) {
-            item.setCart(cart);
-            item.setProduct(product);
-            item.setQuantity(request.getQuantity());
-        } else {
-            item.setQuantity(item.getQuantity() + request.getQuantity());
-        }
-        
-        item.setPrice(product.getPrice()); 
-        BigDecimal total = product.getPrice().multiply(new BigDecimal(item.getQuantity()));
-        item.setTotalPrice(total);
+        item.setPrice(product.getPrice());
+        item.setQuantity(item.getQuantity() + request.getQuantity());
+        item.setTotalPrice(product.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
 
         CartItem savedItem = cartItemRepository.save(item);
-           
-        BigDecimal newGrandTotal = cart.getItems().stream()
-            .map(CartItem::getTotalPrice)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-        cart.setGrandTotal(newGrandTotal);
-        cartRepository.save(cart);
+
+        updateCartGrandTotal(cart);
 
         return mapToDto(savedItem);
     }
-    public CartResponseDto getCartByUserId(Long userId){
-        Cart cart = cartRepository.findByUserId(userId)
+
+    public CartResponseDto getCartByUserEmail(String email) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Cart cart = cartRepository.findByUserId(user.getId())
             .orElseThrow(() -> new RuntimeException("Cart not found"));
-        
+
         List<CartItemResponseDto> itemDtos = cart.getItems()
             .stream()
             .map(this::mapToDto)
             .toList();
+
         BigDecimal grandTotal = itemDtos.stream()
             .map(CartItemResponseDto::getTotalPrice)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -84,36 +83,59 @@ public class CartService {
         return new CartResponseDto(itemDtos, grandTotal);
     }
 
-    public CartItemResponseDto updateCartItemQuantity(Long userId,Long productId,Integer newQauntity){
+    public CartItemResponseDto updateCartItemQuantity(String email, Long productId, Integer newQuantity) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Cart cart = cartRepository.findByUserId(userId)
+        Cart cart = cartRepository.findByUserId(user.getId())
             .orElseThrow(() -> new RuntimeException("Cart not found"));
-        
+
         CartItem item = cartItemRepository.findByCartIdAndProductId(cart.getId(), productId)
             .orElseThrow(() -> new RuntimeException("Item not found"));
 
-        item.setQuantity(newQauntity);
-        item.setTotalPrice(item.getPrice().multiply(new BigDecimal(newQauntity)));
+        item.setQuantity(newQuantity);
+        item.setTotalPrice(item.getPrice().multiply(BigDecimal.valueOf(newQuantity)));
 
-        return mapToDto(cartItemRepository.save(item));
+        CartItem savedItem = cartItemRepository.save(item);
+
+        updateCartGrandTotal(cart);
+
+        return mapToDto(savedItem);
     }
+
     @Transactional
-    public void clearCart(Long userId){
-        Cart cart = cartRepository.findByUserId(userId)
+    public void clearCart(String email) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Cart cart = cartRepository.findByUserId(user.getId())
             .orElseThrow(() -> new RuntimeException("Cart not found"));
 
         cartItemRepository.deleteByCartId(cart.getId());
+
+        cart.setGrandTotal(BigDecimal.ZERO);
+        cartRepository.save(cart);
     }
 
-    private CartItemResponseDto mapToDto(CartItem item){
+    private void updateCartGrandTotal(Cart cart) {
+        List<CartItem> items = cartItemRepository.findByCartId(cart.getId());
+
+        BigDecimal grandTotal = items.stream()
+            .map(CartItem::getTotalPrice)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        cart.setGrandTotal(grandTotal);
+        cartRepository.save(cart);
+    }
+
+    private CartItemResponseDto mapToDto(CartItem item) {
         CartItemResponseDto dto = new CartItemResponseDto();
         dto.setId(item.getId());
         dto.setProductId(item.getProduct().getId());
         dto.setProductName(item.getProduct().getName());
         dto.setQuantity(item.getQuantity());
-        dto.setUnitPrice(item.getPrice()); 
+        dto.setUnitPrice(item.getPrice());
         dto.setTotalPrice(item.getTotalPrice());
         return dto;
     }
-
 }
