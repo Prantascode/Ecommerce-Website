@@ -19,11 +19,7 @@ public class UserService {
     public List<UserResponseDto> getAllUsers() {
         return userRepository.findAll()
                 .stream()
-                .map(user -> new UserResponseDto(
-                        user.getId(),
-                        user.getName(),
-                        user.getEmail(),
-                        user.getRole()))
+                .map(this::mapResponseDto)
                 .collect(Collectors.toList());
     }
 
@@ -31,12 +27,7 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return new UserResponseDto(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getRole()
-        );
+        return mapResponseDto(user);
     }
 
     public void deactivateUser(Long userId){
@@ -51,6 +42,17 @@ public class UserService {
                 .orElseThrow(()-> new RuntimeException("User not found"));
         user.setActive(true);
         userRepository.save(user);
+    }
+
+    private UserResponseDto mapResponseDto(User user){
+        return new UserResponseDto(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole(),
+                user.isActive()
+        );
+
     }
 }
 

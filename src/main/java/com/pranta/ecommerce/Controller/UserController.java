@@ -37,7 +37,7 @@ public class UserController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("dectivate/{id}")
+    @PutMapping("/dectivate/{id}")
     public ResponseEntity<String> deactivateUser(@PathVariable Long id) {
         userService.deactivateUser(id);
        return ResponseEntity.ok("User Deactivated");
