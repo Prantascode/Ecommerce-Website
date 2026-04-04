@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,20 +32,29 @@ public class OrderController {
 
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/create")
-    public ResponseEntity<OrderResponseDto> createOrder(@Valid @RequestBody OrderRequestDto dto){
-        return new ResponseEntity<>(orderService.createOrder(dto),HttpStatus.CREATED);
+    public ResponseEntity<OrderResponseDto> createOrder(Authentication authentication){
+
+        String email = authentication.getName();
+        OrderResponseDto response = orderService.createOrder(email);
+        return new ResponseEntity<>(response,HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasRole('ADMIN') or @userSecurity.isCurrentUserId(#userId, authentication.name)")
-    @GetMapping("/userId/{userId}")
-    public ResponseEntity<List<OrderResponseDto>> getOrderDetailsByUserId(@PathVariable Long userId){
-        return ResponseEntity.ok(orderService.getOrderDetailsByUserId(userId));
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @GetMapping("/myOrder")
+    public ResponseEntity<List<OrderResponseDto>> myOrder(Authentication authentication){
+        String email = authentication.getName();
+        List<OrderResponseDto> response = orderService.getMyOrder(email);
+        return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('ADMIN') or @orderSecurity.isOwner(#orderID, authentication.name)")
-    @GetMapping("/orderId/{orderId}")
-    public ResponseEntity<OrderResponseDto> getOrderById(@PathVariable Long orderId){
-        return ResponseEntity.ok(orderService.getOrderById(orderId));
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/{orderId}")
+    public ResponseEntity<OrderResponseDto> getMyOrderById(
+            @PathVariable Long orderId,
+            Authentication authentication) {
+
+        String email = authentication.getName();
+        return ResponseEntity.ok(orderService.getMyOrderById(orderId, email));
     }
 
     @PreAuthorize("hasRole('ADMIN')")

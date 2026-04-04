@@ -12,13 +12,18 @@ import com.pranta.ecommerce.Dto.OrderResponseDto;
 import com.pranta.ecommerce.Entity.Cart;
 import com.pranta.ecommerce.Entity.Order;
 import com.pranta.ecommerce.Entity.OrderItem;
+import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Repository.CartRepository;
 import com.pranta.ecommerce.Repository.OrderRepository;
+import com.pranta.ecommerce.Repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 
 @Service
 public class OrderService {
+
+    @Autowired
+    private UserRepository userRepository;
     
     @Autowired
     private OrderRepository orderRepository;
@@ -30,9 +35,12 @@ public class OrderService {
     private OrderItemService orderItemService;
 
     @Transactional
-    public OrderResponseDto createOrder(OrderRequestDto dto ){
+    public OrderResponseDto createOrder(String email){
+
+        User user = userRepository.findByEmail(email)
+                    .orElseThrow(()-> new RuntimeException("User not found"));
         
-        Cart cart = cartRepository.findByUserId(dto.getUserId())
+        Cart cart = cartRepository.findByUserId(user.getId())
                     .orElseThrow(() -> new RuntimeException("Cart not found"));
 
         if (cart.getItems().isEmpty()) {
@@ -56,8 +64,12 @@ public class OrderService {
     }
 
     //Order histroy by user
-    public List<OrderResponseDto> getOrderDetailsByUserId(Long userId){
-        List<Order> orders =  orderRepository.findAllByUserIdOrderByOrderDateDesc(userId);
+    public List<OrderResponseDto> getMyOrder(String email){
+
+        User user = userRepository.findByEmail(email)
+                    .orElseThrow(()-> new RuntimeException("User not found"));
+
+        List<Order> orders =  orderRepository.findAllByUserIdOrderByOrderDateDesc(user.getId());
                 return orders.stream()
             .map(order -> {
                 List<OrderItemResponseDto> items = mapToOrderItem(order.getItems());
@@ -66,13 +78,18 @@ public class OrderService {
             .toList();              
     }
 
-    // get order by id
-    public OrderResponseDto getOrderById(Long orderId){
+     public OrderResponseDto getMyOrderById(Long orderId, String email) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new RuntimeException("Order not found"));
 
-        List<OrderItemResponseDto> items = mapToOrderItem(order.getItems());
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("You are not allowed to access this order");
+        }
 
+        List<OrderItemResponseDto> items = mapToOrderItem(order.getItems());
         return mapToResponse(order, items);
     }
     //update order
