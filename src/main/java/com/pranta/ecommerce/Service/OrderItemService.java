@@ -11,6 +11,7 @@ import com.pranta.ecommerce.Entity.OrderItem;
 
 import com.pranta.ecommerce.Repository.OderItemRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
@@ -18,6 +19,7 @@ public class OrderItemService {
 
     private final OderItemRepository orderItemRepository;
 
+    @Transactional
     public List<OrderItemResponseDto> convertCartItemToOrderItem(List<CartItem> cartItems, Order order) {
         List<OrderItem> orderItems = new ArrayList<>();
 

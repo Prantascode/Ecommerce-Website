@@ -61,6 +61,14 @@ public class ProductController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/stock/{productId}")
+    public ResponseEntity<ProductResponseDto> updateStockQuantity(
+        @PathVariable Long productId,int quantity
+    ){
+        return ResponseEntity.ok(productService.updateStock(quantity, productId));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);

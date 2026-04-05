@@ -10,9 +10,11 @@ import com.pranta.ecommerce.Dto.OrderResponseDto;
 import com.pranta.ecommerce.Entity.Cart;
 import com.pranta.ecommerce.Entity.Order;
 import com.pranta.ecommerce.Entity.OrderItem;
+import com.pranta.ecommerce.Entity.Product;
 import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Repository.CartRepository;
 import com.pranta.ecommerce.Repository.OrderRepository;
+import com.pranta.ecommerce.Repository.ProductRepository;
 import com.pranta.ecommerce.Repository.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -26,6 +28,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
     private final OrderItemService orderItemService;
+    private final ProductRepository productRepository;
 
     @Transactional
     public OrderResponseDto createOrder(String email){
@@ -47,6 +50,17 @@ public class OrderService {
         order.setOrderDate(LocalDateTime.now());
         Order savedOrder = orderRepository.save(order);
 
+        for (var cartItem : cart.getItems()) {
+            
+            Product product = cartItem.getProduct();
+
+            if (product.getStock() < cartItem.getQuantity()) {
+                throw new RuntimeException("Not enough stock for product : " +product.getName());
+            }
+
+            product.setStock(product.getStock() - cartItem.getQuantity());
+            productRepository.save(product);
+        }
         List<OrderItemResponseDto> orderItemDtos = orderItemService
             .convertCartItemToOrderItem(cart.getItems(), savedOrder);
 
@@ -56,7 +70,6 @@ public class OrderService {
         return mapToResponse(savedOrder, orderItemDtos);
     }
 
-    //Order histroy by user
     public List<OrderResponseDto> getMyOrder(String email){
 
         User user = userRepository.findByEmail(email)
@@ -85,7 +98,9 @@ public class OrderService {
         List<OrderItemResponseDto> items = mapToOrderItem(order.getItems());
         return mapToResponse(order, items);
     }
+    
     //update order
+    @Transactional
     public OrderResponseDto updateOrderStatus(Long orderId, String newStatus){
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));

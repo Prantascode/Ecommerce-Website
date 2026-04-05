@@ -29,6 +29,7 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
 
+    @Transactional
     public CartItemResponseDto addToCart(CartItemRequestDto request, String email) {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("User not found"));
@@ -43,6 +44,7 @@ public class CartService {
 
         Product product = productRepository.findById(request.getProductId())
             .orElseThrow(() -> new RuntimeException("Product not found"));
+        
 
         CartItem item = cartItemRepository.findByCartIdAndProductId(cart.getId(), product.getId())
             .orElseGet(() -> {
@@ -52,6 +54,12 @@ public class CartService {
                 newItem.setQuantity(0);
                 return newItem;
             });
+            
+        int newQuantity = item.getQuantity() + request.getQuantity();
+        
+        if (product.getStock() < newQuantity) {
+            throw new RuntimeException("Not enough stock");
+        }
 
         item.setPrice(product.getPrice());
         item.setQuantity(item.getQuantity() + request.getQuantity());
@@ -83,6 +91,7 @@ public class CartService {
         return new CartResponseDto(itemDtos, grandTotal);
     }
 
+    @Transactional
     public CartItemResponseDto updateCartItemQuantity(String email, Long productId, Integer newQuantity) {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("User not found"));
@@ -117,6 +126,7 @@ public class CartService {
         cartRepository.save(cart);
     }
 
+    @Transactional
     private void updateCartGrandTotal(Cart cart) {
         List<CartItem> items = cartItemRepository.findByCartId(cart.getId());
 

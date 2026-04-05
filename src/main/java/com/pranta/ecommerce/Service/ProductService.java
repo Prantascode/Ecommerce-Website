@@ -9,6 +9,7 @@ import com.pranta.ecommerce.Dto.ProductResponseDto;
 import com.pranta.ecommerce.Entity.Product;
 import com.pranta.ecommerce.Repository.ProductRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 public class ProductService {
 
     private final ProductRepository productRepository;
+
 
     public ProductResponseDto createProduct(ProductRequestDto dto) {
 
@@ -54,9 +56,19 @@ public class ProductService {
         product.setDescription(dto.getDescription());
         product.setPrice(dto.getPrice());
         product.setImageUrl(dto.getImageUrl());
-        product.setStock(dto.getStock());
 
         return mapToResponse(productRepository.save(product));
+    }
+
+    @Transactional
+    public ProductResponseDto updateStock(int quantity, Long productId){
+        Product product = productRepository.findById(productId)
+                    .orElseThrow(()-> new RuntimeException("Product not found"));
+    
+        product.setStock(quantity);
+        Product saveProduct = productRepository.save(product);
+
+        return mapToResponse(saveProduct);
     }
 
     public void deleteProduct(Long id) {
@@ -70,7 +82,9 @@ public class ProductService {
                 product.getDescription(),
                 product.getPrice(),
                 product.getImageUrl(),
-                product.getStock().name()
+                product.getStock(),
+                product.isAvailable()
+                
         );
     }
 }
