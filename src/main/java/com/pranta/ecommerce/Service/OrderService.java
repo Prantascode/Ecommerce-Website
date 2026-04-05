@@ -3,11 +3,9 @@ package com.pranta.ecommerce.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.pranta.ecommerce.Dto.OrderItemResponseDto;
-import com.pranta.ecommerce.Dto.OrderRequestDto;
 import com.pranta.ecommerce.Dto.OrderResponseDto;
 import com.pranta.ecommerce.Entity.Cart;
 import com.pranta.ecommerce.Entity.Order;
@@ -18,21 +16,16 @@ import com.pranta.ecommerce.Repository.OrderRepository;
 import com.pranta.ecommerce.Repository.UserRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class OrderService {
 
-    @Autowired
-    private UserRepository userRepository;
-    
-    @Autowired
-    private OrderRepository orderRepository;
-
-    @Autowired
-    private CartRepository cartRepository;
-
-    @Autowired
-    private OrderItemService orderItemService;
+    private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
+    private final CartRepository cartRepository;
+    private final OrderItemService orderItemService;
 
     @Transactional
     public OrderResponseDto createOrder(String email){

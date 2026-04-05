@@ -2,7 +2,6 @@ package com.pranta.ecommerce.Controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,12 +19,14 @@ import com.pranta.ecommerce.Dto.ProductResponseDto;
 import com.pranta.ecommerce.Service.ProductService;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/product")
 public class ProductController {
-    @Autowired
-    private ProductService productService;
+
+    private final ProductService productService;
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/add")

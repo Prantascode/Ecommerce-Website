@@ -10,11 +10,13 @@ import com.pranta.ecommerce.Dto.UserResponseDto;
 import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Repository.UserRepository;
 
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
      
     public List<UserResponseDto> getAllUsers() {
         return userRepository.findAll()

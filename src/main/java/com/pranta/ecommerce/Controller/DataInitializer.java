@@ -1,6 +1,5 @@
 package com.pranta.ecommerce.Controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -8,14 +7,14 @@ import org.springframework.stereotype.Component;
 import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Repository.UserRepository;
 
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 @Component
 public class DataInitializer implements CommandLineRunner{
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) {

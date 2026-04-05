@@ -1,6 +1,5 @@
 package com.pranta.ecommerce.Service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -11,19 +10,15 @@ import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Repository.UserRepository;
 import com.pranta.ecommerce.Security.Jwtutil;
 
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 @Service
 public class AuthService {
 
-    @Autowired
-    private Jwtutil jwtutil;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private UserRepository userRepository;
-
-    AuthService(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
-    }
+    private final Jwtutil jwtutil;
+    private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
 
     public UserResponseDto register(UserRequestDto dto){
 

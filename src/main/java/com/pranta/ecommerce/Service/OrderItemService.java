@@ -3,7 +3,6 @@ package com.pranta.ecommerce.Service;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.pranta.ecommerce.Dto.OrderItemResponseDto;
 import com.pranta.ecommerce.Entity.CartItem;
@@ -11,11 +10,13 @@ import com.pranta.ecommerce.Entity.Order;
 import com.pranta.ecommerce.Entity.OrderItem;
 
 import com.pranta.ecommerce.Repository.OderItemRepository;
+
+import lombok.RequiredArgsConstructor;
 @Service
+@RequiredArgsConstructor
 public class OrderItemService {
 
-    @Autowired
-    private OderItemRepository orderItemRepository;
+    private final OderItemRepository orderItemRepository;
 
     public List<OrderItemResponseDto> convertCartItemToOrderItem(List<CartItem> cartItems, Order order) {
         List<OrderItem> orderItems = new ArrayList<>();
