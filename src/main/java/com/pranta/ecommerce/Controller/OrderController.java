@@ -8,13 +8,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.pranta.ecommerce.Dto.OrderResponseDto;
 import com.pranta.ecommerce.Service.OrderService;
@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 
 
 @RequiredArgsConstructor
-@Controller
+@RestController
 @RequestMapping("/api/orders")
 public class OrderController {
 
@@ -45,6 +45,13 @@ public class OrderController {
         List<OrderResponseDto> response = orderService.getMyOrder(email);
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/all")
+    public ResponseEntity<List<OrderResponseDto>> getAllOrders(){
+        List<OrderResponseDto> response = orderService.getAllOrder();
+        return new ResponseEntity<>(response,HttpStatus.OK);
+    } 
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/{orderId}")

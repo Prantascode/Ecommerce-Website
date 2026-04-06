@@ -1,7 +1,9 @@
 package com.pranta.ecommerce.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 
@@ -82,6 +84,22 @@ public class OrderService {
                 return mapToResponse(order, items);
             })
             .toList();              
+    }
+
+    public List<OrderResponseDto> getAllOrder(){
+        List<Order> orders = orderRepository.findAll();
+
+        List<OrderResponseDto> responseList = new ArrayList<>();
+
+         for (Order order : orders) {
+            List<OrderItemResponseDto> items = mapToOrderItem(order.getItems());
+
+            OrderResponseDto response = mapToResponse(order, items);
+
+            responseList.add(response);
+        }
+
+        return responseList;
     }
 
      public OrderResponseDto getMyOrderById(Long orderId, String email) {
