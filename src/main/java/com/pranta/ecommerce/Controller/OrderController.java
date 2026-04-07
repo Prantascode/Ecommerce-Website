@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pranta.ecommerce.Dto.OrderRequestDto;
 import com.pranta.ecommerce.Dto.OrderResponseDto;
+import com.pranta.ecommerce.Entity.Order;
 import com.pranta.ecommerce.Service.OrderService;
 
 import lombok.RequiredArgsConstructor;
@@ -64,9 +66,8 @@ public class OrderController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/update/{orderId}")
-    public ResponseEntity<OrderResponseDto> updateOrderStatus(@PathVariable Long orderId,@RequestBody Map<String, String> request){
-        String newStatus = request.get("status");
-        return ResponseEntity.ok(orderService.updateOrderStatus(orderId, newStatus));
+    @PutMapping("/{orderId}/status")
+    public ResponseEntity<OrderResponseDto> updateOrderStatus(@PathVariable Long orderId,@RequestBody OrderRequestDto request){
+        return ResponseEntity.ok(orderService.updateOrderStatus(orderId,request.getStatus()));
     }
 }

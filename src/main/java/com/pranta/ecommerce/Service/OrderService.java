@@ -3,7 +3,6 @@ package com.pranta.ecommerce.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 
@@ -14,6 +13,7 @@ import com.pranta.ecommerce.Entity.Order;
 import com.pranta.ecommerce.Entity.OrderItem;
 import com.pranta.ecommerce.Entity.Product;
 import com.pranta.ecommerce.Entity.User;
+import com.pranta.ecommerce.Entity.Order.OrderStatus;
 import com.pranta.ecommerce.Repository.CartRepository;
 import com.pranta.ecommerce.Repository.OrderRepository;
 import com.pranta.ecommerce.Repository.ProductRepository;
@@ -48,7 +48,7 @@ public class OrderService {
         Order order = new Order();
         order.setUser(cart.getUser());
         order.setTotalAmount(cart.getGrandTotal());
-        order.setStatus("PENDING");
+        order.setStatus(order.getStatus());
         order.setOrderDate(LocalDateTime.now());
         Order savedOrder = orderRepository.save(order);
 
@@ -119,9 +119,17 @@ public class OrderService {
     
     //update order
     @Transactional
-    public OrderResponseDto updateOrderStatus(Long orderId, String newStatus){
+    public OrderResponseDto updateOrderStatus(Long orderId, OrderStatus newStatus){
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
+        
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            throw new RuntimeException("Cancelled order cannot be updated");
+        }
+
+        if (order.getStatus() == OrderStatus.DELIVERED) {
+            throw new RuntimeException("Delivered order cannot be updated");
+        }
         
         order.setStatus(newStatus);
         Order updateOrder = orderRepository.save(order);

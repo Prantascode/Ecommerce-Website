@@ -6,6 +6,8 @@ import java.util.List;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -38,8 +40,18 @@ public class Order {
     
     private BigDecimal totalAmount;
 
-    private String status;   // e.g., PENDING, COMPLETED
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status = OrderStatus.PENDING;
 
     private LocalDateTime orderDate;
 
+    public enum OrderStatus {
+        PENDING,
+        CONFIRMED,
+        SHIPPED,
+        DELIVERED,
+        CANCELLED
+    }
+
 }
+    

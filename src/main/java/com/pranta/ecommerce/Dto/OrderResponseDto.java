@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.pranta.ecommerce.Entity.Order.OrderStatus;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,7 +18,7 @@ public class OrderResponseDto {
     private Long userId;
     private BigDecimal totalAmount;
 
-    private String status;  
+    private OrderStatus status;  
 
     private LocalDateTime orderDate;
 
