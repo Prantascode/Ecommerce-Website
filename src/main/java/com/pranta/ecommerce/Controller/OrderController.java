@@ -70,4 +70,11 @@ public class OrderController {
     public ResponseEntity<OrderResponseDto> updateOrderStatus(@PathVariable Long orderId,@RequestBody OrderRequestDto request){
         return ResponseEntity.ok(orderService.updateOrderStatus(orderId,request.getStatus()));
     }
+
+    @PreAuthorize("hasRole('USER')")
+    @PutMapping("/{orderId}/cancle")
+    public ResponseEntity<OrderResponseDto> cancelOrder(@PathVariable Long orderId,Authentication authentication){
+        String email = authentication.getName();
+        return ResponseEntity.ok(orderService.cancelOrder(orderId, email));
+    }
 }

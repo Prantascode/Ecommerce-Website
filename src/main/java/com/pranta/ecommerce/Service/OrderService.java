@@ -137,6 +137,36 @@ public class OrderService {
         return mapToResponse(updateOrder, mapToOrderItem(updateOrder.getItems()));
     }
 
+    @Transactional
+public OrderResponseDto cancelOrder(Long orderId, String email) {
+    Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new RuntimeException("Order not found"));
+
+    if (!order.getUser().getEmail().equals(email)) {
+        throw new RuntimeException("You are not allowed to cancel this order");
+    }
+
+    if (order.getStatus().equals(OrderStatus.SHIPPED) || order.getStatus().equals(OrderStatus.DELIVERED)) {
+        throw new RuntimeException("Order cannot be cancelled now");
+    }
+
+    if (order.getStatus().equals(OrderStatus.CANCELLED)) {
+        throw new RuntimeException("Order is already cancelled");
+    }
+
+    for (OrderItem item : order.getItems()) {
+        Product product = item.getProduct();
+        product.setStock(product.getStock() + item.getQuantity());
+    }
+
+    order.setStatus(OrderStatus.CANCELLED);
+
+    Order savedOrder = orderRepository.save(order);
+
+    List<OrderItemResponseDto> items = mapToOrderItem(savedOrder.getItems());
+    return mapToResponse(savedOrder, items);
+}
+
 
     private OrderResponseDto mapToResponse(Order order, List<OrderItemResponseDto> orderItems){
         return new OrderResponseDto(
