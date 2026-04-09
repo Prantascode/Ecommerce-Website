@@ -1,7 +1,6 @@
 package com.pranta.ecommerce.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -16,7 +15,6 @@ import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Entity.Order.OrderStatus;
 import com.pranta.ecommerce.Repository.CartRepository;
 import com.pranta.ecommerce.Repository.OrderRepository;
-import com.pranta.ecommerce.Repository.ProductRepository;
 import com.pranta.ecommerce.Repository.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -30,7 +28,6 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
     private final OrderItemService orderItemService;
-    private final ProductRepository productRepository;
 
     @Transactional
     public OrderResponseDto createOrder(String email){
@@ -50,6 +47,7 @@ public class OrderService {
         order.setTotalAmount(cart.getGrandTotal());
         order.setStatus(OrderStatus.PENDING);
         order.setOrderDate(LocalDateTime.now());
+
         Order savedOrder = orderRepository.save(order);
 
         for (var cartItem : cart.getItems()) {
@@ -61,7 +59,7 @@ public class OrderService {
             }
 
             product.setStock(product.getStock() - cartItem.getQuantity());
-            productRepository.save(product);
+            
         }
         List<OrderItemResponseDto> orderItemDtos = orderItemService
             .convertCartItemToOrderItem(cart.getItems(), savedOrder);
@@ -78,28 +76,15 @@ public class OrderService {
                     .orElseThrow(()-> new RuntimeException("User not found"));
 
         List<Order> orders =  orderRepository.findAllByUserIdOrderByOrderDateDesc(user.getId());
-                return orders.stream()
-            .map(order -> {
-                List<OrderItemResponseDto> items = mapToOrderItem(order.getItems());
-                return mapToResponse(order, items);
-            })
+        return orders.stream()
+            .map(this::convertToDto)
             .toList();              
     }
 
     public List<OrderResponseDto> getAllOrder(){
-        List<Order> orders = orderRepository.findAll();
-
-        List<OrderResponseDto> responseList = new ArrayList<>();
-
-         for (Order order : orders) {
-            List<OrderItemResponseDto> items = mapToOrderItem(order.getItems());
-
-            OrderResponseDto response = mapToResponse(order, items);
-
-            responseList.add(response);
-        }
-
-        return responseList;
+        return orderRepository.findAll().stream()
+                .map(this::convertToDto)
+                .toList();
     }
 
      public OrderResponseDto getMyOrderById(Long orderId, String email) {
@@ -113,8 +98,7 @@ public class OrderService {
             throw new RuntimeException("You are not allowed to access this order");
         }
 
-        List<OrderItemResponseDto> items = mapToOrderItem(order.getItems());
-        return mapToResponse(order, items);
+        return convertToDto(order);
     }
     
     //update order
@@ -122,6 +106,10 @@ public class OrderService {
     public OrderResponseDto updateOrderStatus(Long orderId, OrderStatus newStatus){
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
+        
+        if (newStatus.equals(OrderStatus.CANCELLED) && order.getStatus() != OrderStatus.CANCELLED) {
+            restoreStock(order);
+        }
         
         if (order.getStatus() == OrderStatus.CANCELLED) {
             throw new RuntimeException("Cancelled order cannot be updated");
@@ -134,7 +122,7 @@ public class OrderService {
         order.setStatus(newStatus);
         Order updateOrder = orderRepository.save(order);
 
-        return mapToResponse(updateOrder, mapToOrderItem(updateOrder.getItems()));
+        return convertToDto(updateOrder);
     }
 
     @Transactional
@@ -154,34 +142,34 @@ public class OrderService {
             throw new RuntimeException("Order is already cancelled");
         }
 
-        for (OrderItem item : order.getItems()) {
-            Product product = item.getProduct();
-            product.setStock(product.getStock() + item.getQuantity());
-        }
+        restoreStock(order);
 
         order.setStatus(OrderStatus.CANCELLED);
 
         Order savedOrder = orderRepository.save(order);
-
-        List<OrderItemResponseDto> items = mapToOrderItem(savedOrder.getItems());
-        return mapToResponse(savedOrder, items);
+        
+        return convertToDto(savedOrder);
     }
 
 
     public List<OrderResponseDto> filterByStatus(OrderStatus status){
        List<Order> orders = orderRepository.findByStatus(status);
        
-       List<OrderResponseDto> responseList = new ArrayList<>();
+      return orders.stream()
+            .map(this::convertToDto)
+            .toList();
+    }
 
-         for (Order order : orders) {
-            List<OrderItemResponseDto> items = mapToOrderItem(order.getItems());
-
-            OrderResponseDto response = mapToResponse(order, items);
-
-            responseList.add(response);
+    private void restoreStock(Order order) {
+        for (OrderItem item : order.getItems()) {
+            Product product = item.getProduct();
+            product.setStock(product.getStock() + item.getQuantity());
         }
+    }
 
-        return responseList;
+    private OrderResponseDto convertToDto(Order order) {
+        List<OrderItemResponseDto> items = mapToOrderItem(order.getItems());
+        return mapToResponse(order, items);
     }
 
     private OrderResponseDto mapToResponse(Order order, List<OrderItemResponseDto> orderItems){
