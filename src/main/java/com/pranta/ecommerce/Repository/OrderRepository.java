@@ -7,7 +7,6 @@ import com.pranta.ecommerce.Entity.Order.OrderStatus;
 import com.pranta.ecommerce.Entity.User;
 
 import java.util.List;
-import java.util.Optional;
 
 
 public interface OrderRepository extends JpaRepository<Order,Long>{

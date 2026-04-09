@@ -2,13 +2,13 @@ package com.pranta.ecommerce.Controller;
 
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -16,12 +16,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.pranta.ecommerce.Dto.OrderRequestDto;
 import com.pranta.ecommerce.Dto.OrderResponseDto;
 import com.pranta.ecommerce.Dto.OrderUpdateRequestDto;
 import com.pranta.ecommerce.Entity.Order.OrderStatus;
 import com.pranta.ecommerce.Service.OrderService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 
@@ -67,8 +67,8 @@ public class OrderController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{orderId}/status")
-    public ResponseEntity<OrderResponseDto> updateOrderStatus(@PathVariable Long orderId,@RequestBody OrderUpdateRequestDto request){
+    @PatchMapping("/{orderId}/status")
+    public ResponseEntity<OrderResponseDto> updateOrderStatus(@PathVariable Long orderId,@Valid @RequestBody OrderUpdateRequestDto request){
         return ResponseEntity.ok(orderService.updateOrderStatus(orderId,request.getStatus()));
     }
 

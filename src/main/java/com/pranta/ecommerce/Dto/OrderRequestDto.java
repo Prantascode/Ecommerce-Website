@@ -1,10 +1,8 @@
 package com.pranta.ecommerce.Dto;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
-import com.pranta.ecommerce.Entity.Order.OrderStatus;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
