@@ -48,7 +48,7 @@ public class OrderService {
         Order order = new Order();
         order.setUser(cart.getUser());
         order.setTotalAmount(cart.getGrandTotal());
-        order.setStatus(order.getStatus());
+        order.setStatus(OrderStatus.PENDING);
         order.setOrderDate(LocalDateTime.now());
         Order savedOrder = orderRepository.save(order);
 
@@ -138,35 +138,51 @@ public class OrderService {
     }
 
     @Transactional
-public OrderResponseDto cancelOrder(Long orderId, String email) {
-    Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new RuntimeException("Order not found"));
+    public OrderResponseDto cancelOrder(Long orderId, String email) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
 
-    if (!order.getUser().getEmail().equals(email)) {
-        throw new RuntimeException("You are not allowed to cancel this order");
+        if (!order.getUser().getEmail().equals(email)) {
+            throw new RuntimeException("You are not allowed to cancel this order");
+        }
+
+        if (order.getStatus().equals(OrderStatus.SHIPPED) || order.getStatus().equals(OrderStatus.DELIVERED)) {
+            throw new RuntimeException("Order cannot be cancelled now");
+        }
+
+        if (order.getStatus().equals(OrderStatus.CANCELLED)) {
+            throw new RuntimeException("Order is already cancelled");
+        }
+
+        for (OrderItem item : order.getItems()) {
+            Product product = item.getProduct();
+            product.setStock(product.getStock() + item.getQuantity());
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+
+        Order savedOrder = orderRepository.save(order);
+
+        List<OrderItemResponseDto> items = mapToOrderItem(savedOrder.getItems());
+        return mapToResponse(savedOrder, items);
     }
 
-    if (order.getStatus().equals(OrderStatus.SHIPPED) || order.getStatus().equals(OrderStatus.DELIVERED)) {
-        throw new RuntimeException("Order cannot be cancelled now");
+
+    public List<OrderResponseDto> filterByStatus(OrderStatus status){
+       List<Order> orders = orderRepository.findByStatus(status);
+       
+       List<OrderResponseDto> responseList = new ArrayList<>();
+
+         for (Order order : orders) {
+            List<OrderItemResponseDto> items = mapToOrderItem(order.getItems());
+
+            OrderResponseDto response = mapToResponse(order, items);
+
+            responseList.add(response);
+        }
+
+        return responseList;
     }
-
-    if (order.getStatus().equals(OrderStatus.CANCELLED)) {
-        throw new RuntimeException("Order is already cancelled");
-    }
-
-    for (OrderItem item : order.getItems()) {
-        Product product = item.getProduct();
-        product.setStock(product.getStock() + item.getQuantity());
-    }
-
-    order.setStatus(OrderStatus.CANCELLED);
-
-    Order savedOrder = orderRepository.save(order);
-
-    List<OrderItemResponseDto> items = mapToOrderItem(savedOrder.getItems());
-    return mapToResponse(savedOrder, items);
-}
-
 
     private OrderResponseDto mapToResponse(Order order, List<OrderItemResponseDto> orderItems){
         return new OrderResponseDto(

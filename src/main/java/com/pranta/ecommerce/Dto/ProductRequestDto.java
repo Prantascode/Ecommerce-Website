@@ -30,6 +30,4 @@ public class ProductRequestDto {
 
     @PositiveOrZero
     private int stock;
-
-    private boolean isAvailable;
 }

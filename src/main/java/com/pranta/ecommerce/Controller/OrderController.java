@@ -18,7 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pranta.ecommerce.Dto.OrderRequestDto;
 import com.pranta.ecommerce.Dto.OrderResponseDto;
-import com.pranta.ecommerce.Entity.Order;
+import com.pranta.ecommerce.Dto.OrderUpdateRequestDto;
+import com.pranta.ecommerce.Entity.Order.OrderStatus;
 import com.pranta.ecommerce.Service.OrderService;
 
 import lombok.RequiredArgsConstructor;
@@ -67,14 +68,20 @@ public class OrderController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{orderId}/status")
-    public ResponseEntity<OrderResponseDto> updateOrderStatus(@PathVariable Long orderId,@RequestBody OrderRequestDto request){
+    public ResponseEntity<OrderResponseDto> updateOrderStatus(@PathVariable Long orderId,@RequestBody OrderUpdateRequestDto request){
         return ResponseEntity.ok(orderService.updateOrderStatus(orderId,request.getStatus()));
     }
 
     @PreAuthorize("hasRole('USER')")
-    @PutMapping("/{orderId}/cancle")
+    @PutMapping("/{orderId}/cancel")
     public ResponseEntity<OrderResponseDto> cancelOrder(@PathVariable Long orderId,Authentication authentication){
         String email = authentication.getName();
         return ResponseEntity.ok(orderService.cancelOrder(orderId, email));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("filter/{status}")
+    public ResponseEntity<List<OrderResponseDto>> filterByStatus(@PathVariable OrderStatus status){
+        return ResponseEntity.ok(orderService.filterByStatus(status));
     }
 }

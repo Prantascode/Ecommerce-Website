@@ -6,6 +6,10 @@ import java.util.List;
 
 import com.pranta.ecommerce.Entity.Order.OrderStatus;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,13 +18,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderRequestDto {
-    private Long id;
+
+    @NotNull(message = "User ID is required")
     private Long userId;
-    private Long orderItemId;
+
+    @NotEmpty(message = "Order must have at least one item")
+    @Valid
     private List<OrderItemResponseDto> item;
+
+    @NotNull(message = "Total amount is required")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Total amount must be greater than zero")
     private BigDecimal totalAmount;
-
-    private OrderStatus status;  
-
-    private LocalDateTime createdAt;
 }
