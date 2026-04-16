@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.pranta.ecommerce.Dto.UserRequestDto;
 import com.pranta.ecommerce.Dto.UserResponseDto;
 import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Repository.UserRepository;
@@ -30,6 +31,14 @@ public class UserService {
 
         return mapResponseDto(user);
     }
+
+    public UserResponseDto myProfile(String email){
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return mapResponseDto(user);
+    }
+
 
     public void deactivateUser(Long userId){
         User user = userRepository.findById(userId)

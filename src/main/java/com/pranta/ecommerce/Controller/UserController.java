@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,8 +38,15 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @GetMapping("/my_profile")
+    public ResponseEntity<UserResponseDto> myProfile(Authentication authentication){
+        String email = authentication.getName();
+        return ResponseEntity.ok(userService.myProfile(email));
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/dectivate/{id}")
+    @PutMapping("/deactivate/{id}")
     public ResponseEntity<String> deactivateUser(@PathVariable Long id) {
         userService.deactivateUser(id);
        return ResponseEntity.ok("User Deactivated");
