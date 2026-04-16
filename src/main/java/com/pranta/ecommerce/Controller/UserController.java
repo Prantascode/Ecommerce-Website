@@ -68,4 +68,11 @@ public class UserController {
         userService.activateUser(id);
         return ResponseEntity.ok("User activated successfully");
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/active/{active}")
+    public ResponseEntity<List<UserResponseDto>> getActiveAndDeactiveUsers(@PathVariable Boolean active){
+        
+        return ResponseEntity.ok(userService.getActiveAndDeactiveUser(active));
+    }
 }

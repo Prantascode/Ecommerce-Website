@@ -1,5 +1,6 @@
 package com.pranta.ecommerce.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -65,7 +66,7 @@ public class UserService {
 
         User currentAdmin = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("ADMIN not found"));
-                
+
         if (currentAdmin.getId().equals(userId)) {
             throw new RuntimeException("Admin can't deactivate their own account");
         }
@@ -80,6 +81,14 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public List<UserResponseDto> getActiveAndDeactiveUser(Boolean active){
+        List<User> users = userRepository.findByActive(active);
+
+        return users.stream()
+                .map(this::mapResponseDto)
+                .toList();
+               
+    }
     private UserResponseDto mapResponseDto(User user){
         return new UserResponseDto(
                 user.getId(),
