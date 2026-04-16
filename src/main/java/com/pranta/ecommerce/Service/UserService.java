@@ -3,6 +3,8 @@ package com.pranta.ecommerce.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.pranta.ecommerce.Dto.UserRequestDto;
@@ -10,6 +12,7 @@ import com.pranta.ecommerce.Dto.UserResponseDto;
 import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Repository.UserRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -39,10 +42,33 @@ public class UserService {
         return mapResponseDto(user);
     }
 
+    @Transactional
+    public UserResponseDto UpdateMyProfile(String email,UserRequestDto dto){
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setEmail(dto.getEmail());
+        user.setName(dto.getName());
+        user.setPassword(dto.getPassword());
+        user.setAddress(dto.getAddress());
+
+        User updated = userRepository.save(user);
+
+        return mapResponseDto(updated);
+    }
 
     public void deactivateUser(Long userId){
         User user = userRepository.findById(userId)
                 .orElseThrow(()-> new RuntimeException("User not found"));
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User currentAdmin = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("ADMIN not found"));
+                
+        if (currentAdmin.getId().equals(userId)) {
+            throw new RuntimeException("Admin can't deactivate their own account");
+        }
         user.setActive(false);
         userRepository.save(user);
     }
@@ -60,7 +86,8 @@ public class UserService {
                 user.getName(),
                 user.getEmail(),
                 user.getRole(),
-                user.isActive()
+                user.isActive(),
+                user.getAddress()
         );
 
     }

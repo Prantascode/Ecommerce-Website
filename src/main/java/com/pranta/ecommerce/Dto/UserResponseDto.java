@@ -15,4 +15,5 @@ public class UserResponseDto {
     private String email; 
     private Role role;
     private boolean active;
+    private String address;
 }

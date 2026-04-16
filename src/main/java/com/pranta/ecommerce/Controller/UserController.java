@@ -11,12 +11,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pranta.ecommerce.Dto.UserRequestDto;
 import com.pranta.ecommerce.Dto.UserResponseDto;
 import com.pranta.ecommerce.Service.UserService;
 
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 
 @RequiredArgsConstructor
@@ -44,6 +46,14 @@ public class UserController {
         String email = authentication.getName();
         return ResponseEntity.ok(userService.myProfile(email));
     }
+
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @PutMapping("/me")
+    public ResponseEntity<UserResponseDto> updateProfile(Authentication authentication,
+        @RequestBody UserRequestDto dto){
+            String email = authentication.getName();
+            return ResponseEntity.ok(userService.UpdateMyProfile(email, dto));
+        }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/deactivate/{id}")

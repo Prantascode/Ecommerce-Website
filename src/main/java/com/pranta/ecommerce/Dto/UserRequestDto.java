@@ -28,4 +28,7 @@ public class UserRequestDto {
 
     @NotNull
     private Role role;
+
+    @NotBlank
+    private String address;
 }
