@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pranta.ecommerce.Dto.UserRequestDto;
 import com.pranta.ecommerce.Dto.UserResponseDto;
+import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -46,6 +47,12 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserByEmail(email));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/role/{role}")
+    public ResponseEntity<List<UserResponseDto>> getUserByUserRole(@PathVariable User.Role role){
+        return ResponseEntity.ok(userService.getUserByRole(role));
+    }
+
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @GetMapping("/my_profile")
     public ResponseEntity<UserResponseDto> myProfile(Authentication authentication){
@@ -62,13 +69,13 @@ public class UserController {
         }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/deactivate/{id}")
+    @PutMapping("/{id}/deactivate")
     public ResponseEntity<String> deactivateUser(@PathVariable Long id) {
         userService.deactivateUser(id);
        return ResponseEntity.ok("User Deactivated");
     }
 
-    @PutMapping("/activate/{id}")
+    @PutMapping("/{id}/activate")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> activateUser(@PathVariable Long id) {
         userService.activateUser(id);

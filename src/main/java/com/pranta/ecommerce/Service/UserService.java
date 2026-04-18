@@ -42,6 +42,14 @@ public class UserService {
         return mapResponseDto(user);
     }
 
+    public List<UserResponseDto> getUserByRole(User.Role role){
+        List<User> user = userRepository.findByRole(role);
+
+        return user.stream()
+                .map(this::mapResponseDto)
+                .toList();
+    }
+
     public UserResponseDto myProfile(String email){
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
