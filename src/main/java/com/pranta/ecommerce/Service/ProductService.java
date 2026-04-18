@@ -21,12 +21,19 @@ public class ProductService {
 
     public ProductResponseDto createProduct(ProductRequestDto dto) {
 
+        String productName = dto.getName().trim();
+
+        if (productRepository.findByName(productName).isPresent()) {
+            throw new RuntimeException("Product with this name already exists");
+        }
+
         Product product = new Product();
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
         product.setPrice(dto.getPrice());
         product.setImageUrl(dto.getImageUrl());
         product.setStock(dto.getStock());
+
 
         Product savedProduct = productRepository.save(product);
 
@@ -47,10 +54,23 @@ public class ProductService {
         return mapToResponse(product);
     }
 
+    public ProductResponseDto getProductByName(String name){
+        Product product = productRepository.findByName(name)
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
+        
+        return mapToResponse(product);
+    }
+
     public ProductResponseDto updateProduct(Long id, ProductRequestDto dto) {
 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
+        
+        String productName = dto.getName().trim();
+
+        if (productRepository.findByName(productName).isPresent()) {
+            throw new RuntimeException("Product with this name already exists");
+        }
 
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());

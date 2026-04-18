@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pranta.ecommerce.Dto.ProductRequestDto;
@@ -29,7 +30,7 @@ public class ProductController {
     private final ProductService productService;
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/add")
+    @PostMapping()
     public ResponseEntity<ProductResponseDto> createProduct(
             @Valid @RequestBody ProductRequestDto dto) {
 
@@ -39,16 +40,22 @@ public class ProductController {
         );
     }
 
-    @PreAuthorize("hasRole('ADMIN' or hasRole('USER'))")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @GetMapping
     public ResponseEntity<List<ProductResponseDto>> getAllProducts() {
         return ResponseEntity.ok(productService.getAllProducts());
     }
 
-    @PreAuthorize("hasRole('ADMIN' or hasRole('USER'))")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponseDto> getProductById(@PathVariable Long id) {
         return ResponseEntity.ok(productService.getProductById(id));
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @GetMapping("/search")
+    public ResponseEntity<ProductResponseDto> getProductByName(@RequestParam String name){
+        return ResponseEntity.ok(productService.getProductByName(name));
     }
 
     @PreAuthorize("hasRole('ADMIN')")

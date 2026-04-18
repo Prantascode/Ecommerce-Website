@@ -2,6 +2,7 @@ package com.pranta.ecommerce.Dto;
 
 import java.math.BigDecimal;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -17,6 +18,7 @@ public class ProductRequestDto {
     private Long id;
 
     @NotBlank(message = "Name is Required")
+    @Column(nullable = false,unique = true)
     private String name;
 
     @NotBlank(message = "Description is Required")
