@@ -40,6 +40,12 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/email/{email}")
+    public ResponseEntity<UserResponseDto> getUserByEmailId(@PathVariable String email){
+        return ResponseEntity.ok(userService.getUserByEmail(email));
+    }
+
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @GetMapping("/my_profile")
     public ResponseEntity<UserResponseDto> myProfile(Authentication authentication){

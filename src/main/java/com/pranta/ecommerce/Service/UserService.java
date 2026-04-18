@@ -1,6 +1,5 @@
 package com.pranta.ecommerce.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,6 +31,13 @@ public class UserService {
     public UserResponseDto getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return mapResponseDto(user);
+    }
+
+    public UserResponseDto getUserByEmail(String email){
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found on this Email"));
 
         return mapResponseDto(user);
     }
