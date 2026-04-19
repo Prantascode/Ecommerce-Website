@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pranta.ecommerce.Dto.ProductRequestDto;
 import com.pranta.ecommerce.Dto.ProductResponseDto;
+import com.pranta.ecommerce.Entity.Category;
 import com.pranta.ecommerce.Service.ProductService;
 
 import jakarta.validation.Valid;
@@ -56,6 +57,12 @@ public class ProductController {
     @GetMapping("/search")
     public ResponseEntity<ProductResponseDto> getProductByName(@RequestParam String name){
         return ResponseEntity.ok(productService.getProductByName(name));
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @GetMapping("/category/search")
+    public ResponseEntity<List<ProductResponseDto>> getProductByCategory(@RequestParam Category category){
+        return ResponseEntity.ok(productService.getProductByCategory(category));
     }
 
     @PreAuthorize("hasRole('ADMIN')")

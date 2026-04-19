@@ -2,6 +2,8 @@ package com.pranta.ecommerce.Dto;
 
 import java.math.BigDecimal;
 
+import com.pranta.ecommerce.Entity.Category;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,4 +19,6 @@ public class ProductResponseDto {
     private String imageUrl;
     private int stock;
     private boolean isAvailable;
+    private Category category;
+
 }

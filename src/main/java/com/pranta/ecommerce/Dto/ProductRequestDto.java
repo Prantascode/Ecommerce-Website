@@ -2,6 +2,8 @@ package com.pranta.ecommerce.Dto;
 
 import java.math.BigDecimal;
 
+import com.pranta.ecommerce.Entity.Category;
+
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -32,4 +34,7 @@ public class ProductRequestDto {
 
     @PositiveOrZero
     private int stock;
+
+    @NotBlank(message = "Category is Required")
+    private Category category;
 }
