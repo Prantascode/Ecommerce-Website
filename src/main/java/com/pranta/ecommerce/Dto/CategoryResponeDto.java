@@ -9,8 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CategoryResponeDto {
-    
-    private Long id;
 
     @Column(nullable = false,unique = true)
     private String name;

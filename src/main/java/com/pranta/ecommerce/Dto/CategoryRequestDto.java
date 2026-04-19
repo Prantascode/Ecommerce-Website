@@ -1,6 +1,7 @@
 package com.pranta.ecommerce.Dto;
 
-import jakarta.persistence.Column;
+
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,9 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CategoryRequestDto {
-    
-    private Long id;
 
-    @Column(nullable = false,unique = true)
+    @NotBlank(message = "name is required")
     private String name;
 }

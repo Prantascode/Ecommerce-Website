@@ -1,7 +1,6 @@
 package com.pranta.ecommerce.Service;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import com.pranta.ecommerce.Dto.CategoryRequestDto;
 import com.pranta.ecommerce.Dto.CategoryResponeDto;
@@ -16,11 +15,10 @@ public class CategoryService {
     
     private final CategoryRepository categoryRepository;
 
-    public CategoryResponeDto createCategory(@RequestBody CategoryRequestDto dto){
+    public CategoryResponeDto createCategory(CategoryRequestDto dto){
 
         Category category = new Category();
 
-        category.setId(dto.getId());
         category.setName(dto.getName());
 
         Category categorys = categoryRepository.save(category);
@@ -31,7 +29,6 @@ public class CategoryService {
 
     private CategoryResponeDto mapToDto(Category category){
         return new CategoryResponeDto(
-            category.getId(),
             category.getName()
         );
     }

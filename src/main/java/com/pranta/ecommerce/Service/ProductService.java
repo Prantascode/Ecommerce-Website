@@ -9,6 +9,7 @@ import com.pranta.ecommerce.Dto.ProductRequestDto;
 import com.pranta.ecommerce.Dto.ProductResponseDto;
 import com.pranta.ecommerce.Entity.Category;
 import com.pranta.ecommerce.Entity.Product;
+import com.pranta.ecommerce.Repository.CategoryRepository;
 import com.pranta.ecommerce.Repository.ProductRepository;
 
 import jakarta.transaction.Transactional;
@@ -20,8 +21,12 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
+    private final CategoryRepository categoryRepository;
 
     public ProductResponseDto createProduct(ProductRequestDto dto) {
+
+        Category category = categoryRepository.findById(dto.getCategory_id())
+                    .orElseThrow(()-> new RuntimeException("Category not found"));
 
         String productName = dto.getName().trim();
 
@@ -35,7 +40,7 @@ public class ProductService {
         product.setPrice(dto.getPrice());
         product.setImageUrl(dto.getImageUrl());
         product.setStock(dto.getStock());
-        product.setCategory(dto.getCategory());
+        product.setCategory(category);
 
 
         Product savedProduct = productRepository.save(product);
@@ -71,10 +76,15 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public ProductResponseDto updateProduct(Long id, ProductRequestDto dto) {
 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        Category category = categoryRepository.findById(dto.getCategory_id())
+                        .orElseThrow(() -> new RuntimeException("Category not found"));
+
         
         String productName = dto.getName().trim();
 
@@ -86,7 +96,7 @@ public class ProductService {
         product.setDescription(dto.getDescription());
         product.setPrice(dto.getPrice());
         product.setImageUrl(dto.getImageUrl());
-        product.setCategory(dto.getCategory());
+        product.setCategory(category);
 
         return mapToResponse(productRepository.save(product));
     }

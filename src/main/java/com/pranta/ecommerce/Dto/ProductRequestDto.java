@@ -35,6 +35,6 @@ public class ProductRequestDto {
     @PositiveOrZero
     private int stock;
 
-    @NotBlank(message = "Category is Required")
-    private Category category;
+    @NotNull(message = "Category is Required")
+    private Long category_id;
 }
