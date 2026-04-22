@@ -2,7 +2,6 @@ package com.pranta.ecommerce.Dto;
 
 import java.math.BigDecimal;
 
-import com.pranta.ecommerce.Entity.Category;
 
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;

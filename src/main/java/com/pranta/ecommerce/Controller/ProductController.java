@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/product")
+@RequestMapping("/api/products")
 public class ProductController {
 
     private final ProductService productService;
@@ -41,28 +41,35 @@ public class ProductController {
         );
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @GetMapping
     public ResponseEntity<List<ProductResponseDto>> getAllProducts() {
         return ResponseEntity.ok(productService.getAllProducts());
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponseDto> getProductById(@PathVariable Long id) {
         return ResponseEntity.ok(productService.getProductById(id));
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @GetMapping("/search")
     public ResponseEntity<ProductResponseDto> getProductByName(@RequestParam String name){
         return ResponseEntity.ok(productService.getProductByName(name));
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @GetMapping("/category/search")
     public ResponseEntity<List<ProductResponseDto>> getProductByCategory(@RequestParam Category category){
         return ResponseEntity.ok(productService.getProductByCategory(category));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/stock_out")
+    public ResponseEntity<?> getOutOfStockProduct(){
+        List<ProductResponseDto> products = productService.getOutOfStockProducts();
+
+        if (products.isEmpty()) {
+            return ResponseEntity.ok("No out of stock's products");
+        }
+        return ResponseEntity.ok(products);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

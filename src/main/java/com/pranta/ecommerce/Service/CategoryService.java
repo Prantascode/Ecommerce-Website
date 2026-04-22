@@ -1,5 +1,8 @@
 package com.pranta.ecommerce.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 
 import com.pranta.ecommerce.Dto.CategoryRequestDto;
@@ -25,6 +28,14 @@ public class CategoryService {
 
         return mapToDto(categorys);
 
+    }
+
+    public List<CategoryResponeDto> getCategorys(){
+        return categoryRepository.findAll()
+                .stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+                
     }
 
     private CategoryResponeDto mapToDto(Category category){

@@ -1,6 +1,7 @@
 package com.pranta.ecommerce.Service;
 
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -71,9 +72,21 @@ public class ProductService {
 
     public List<ProductResponseDto> getProductByCategory(Category category){
 
-        return productRepository.findByCategory(category).stream()
+        return productRepository.findByCategory(category)
+                .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    public List<ProductResponseDto> getOutOfStockProducts(){
+        List<Product> products = productRepository.findByStock(0);
+
+        if (products.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return products.stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
     @Transactional
