@@ -1,5 +1,7 @@
 package com.pranta.ecommerce.Service;
 
+
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -10,6 +12,8 @@ import org.springframework.stereotype.Service;
 import com.pranta.ecommerce.Dto.UserRequestDto;
 import com.pranta.ecommerce.Dto.UserResponseDto;
 import com.pranta.ecommerce.Entity.User;
+import com.pranta.ecommerce.Exceptions.InvalidRequestException;
+import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
 import com.pranta.ecommerce.Repository.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -22,7 +26,12 @@ public class UserService {
     private final UserRepository userRepository;
      
     public List<UserResponseDto> getAllUsers() {
-        return userRepository.findAll()
+        
+        List<User> users = userRepository.findAll();
+        if (users.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return users
                 .stream()
                 .map(this::mapResponseDto)
                 .collect(Collectors.toList());
@@ -30,29 +39,32 @@ public class UserService {
 
     public UserResponseDto getUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with this id"));
 
         return mapResponseDto(user);
     }
 
     public UserResponseDto getUserByEmail(String email){
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found on this Email"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with this Email"));
 
         return mapResponseDto(user);
     }
 
     public List<UserResponseDto> getUserByRole(User.Role role){
-        List<User> user = userRepository.findByRole(role);
-
-        return user.stream()
+        List<User> users = userRepository.findByRole(role);
+        
+        if (users.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return users.stream()
                 .map(this::mapResponseDto)
                 .toList();
     }
 
     public UserResponseDto myProfile(String email){
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found by this mail"));
 
         return mapResponseDto(user);
     }
@@ -60,7 +72,7 @@ public class UserService {
     @Transactional
     public UserResponseDto UpdateMyProfile(String email,UserRequestDto dto){
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found by this mail"));
         user.setEmail(dto.getEmail());
         user.setName(dto.getName());
         user.setPassword(dto.getPassword());
@@ -73,16 +85,16 @@ public class UserService {
 
     public void deactivateUser(Long userId){
         User user = userRepository.findById(userId)
-                .orElseThrow(()-> new RuntimeException("User not found"));
+                .orElseThrow(()-> new ResourceNotFoundException("User not found with this id"));
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
         User currentAdmin = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("ADMIN not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("ADMIN not found"));
 
         if (currentAdmin.getId().equals(userId)) {
-            throw new RuntimeException("Admin can't deactivate their own account");
+            throw new InvalidRequestException("Admin can't deactivate their own account");
         }
         user.setActive(false);
         userRepository.save(user);
@@ -90,7 +102,7 @@ public class UserService {
 
     public void activateUser(Long userId){
         User user = userRepository.findById(userId)
-                .orElseThrow(()-> new RuntimeException("User not found"));
+                .orElseThrow(()-> new ResourceNotFoundException("User not found with this id"));
         user.setActive(true);
         userRepository.save(user);
     }
@@ -98,6 +110,9 @@ public class UserService {
     public List<UserResponseDto> getActiveAndDeactiveUser(Boolean active){
         List<User> users = userRepository.findByActive(active);
 
+        if (users.isEmpty()) {
+            return Collections.emptyList();
+        }
         return users.stream()
                 .map(this::mapResponseDto)
                 .toList();
