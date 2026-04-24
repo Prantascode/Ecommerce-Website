@@ -10,6 +10,8 @@ import com.pranta.ecommerce.Dto.ProductRequestDto;
 import com.pranta.ecommerce.Dto.ProductResponseDto;
 import com.pranta.ecommerce.Entity.Category;
 import com.pranta.ecommerce.Entity.Product;
+import com.pranta.ecommerce.Exceptions.DuplicateResourceException;
+import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
 import com.pranta.ecommerce.Repository.CategoryRepository;
 import com.pranta.ecommerce.Repository.ProductRepository;
 
@@ -32,7 +34,7 @@ public class ProductService {
         String productName = dto.getName().trim();
 
         if (productRepository.findByName(productName).isPresent()) {
-            throw new RuntimeException("Product with this name already exists");
+            throw new DuplicateResourceException("Product with this name already exists");
         }
 
         Product product = new Product();
@@ -50,22 +52,26 @@ public class ProductService {
     }
 
     public List<ProductResponseDto> getAllProducts() {
-        return productRepository.findAll()
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+
+        List<Product> products = productRepository.findAll();
+        if (products.isEmpty()) {
+            throw new ResourceNotFoundException("No products found!");
+        }
+        return products.stream()
+                        .map(this::mapToResponse)
+                        .collect(Collectors.toList());
     }
 
     public ProductResponseDto getProductById(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product is not found with this id"));
 
         return mapToResponse(product);
     }
 
     public ProductResponseDto getProductByName(String name){
         Product product = productRepository.findByName(name)
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Product is not found with this name"));
         
         return mapToResponse(product);
     }
@@ -73,9 +79,9 @@ public class ProductService {
     public List<ProductResponseDto> getProductByCategory(Category category){
 
         return productRepository.findByCategory(category)
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+                    .stream()
+                    .map(this::mapToResponse)
+                    .collect(Collectors.toList());
     }
 
     public List<ProductResponseDto> getOutOfStockProducts(){
@@ -93,16 +99,16 @@ public class ProductService {
     public ProductResponseDto updateProduct(Long id, ProductRequestDto dto) {
 
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product is not found with this id"));
 
         Category category = categoryRepository.findById(dto.getCategory_id())
-                        .orElseThrow(() -> new RuntimeException("Category not found"));
+                        .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
         
         String productName = dto.getName().trim();
 
         if (productRepository.findByName(productName).isPresent()) {
-            throw new RuntimeException("Product with this name already exists");
+            throw new DuplicateResourceException("Product with this name already exists");
         }
 
         product.setName(dto.getName());
@@ -117,7 +123,7 @@ public class ProductService {
     @Transactional
     public ProductResponseDto updateStock(int quantity, Long productId){
         Product product = productRepository.findById(productId)
-                    .orElseThrow(()-> new RuntimeException("Product not found"));
+                    .orElseThrow(()-> new ResourceNotFoundException("Product is not found with this id"));
     
         product.setStock(quantity);
         Product saveProduct = productRepository.save(product);
