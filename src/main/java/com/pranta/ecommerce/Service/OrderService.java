@@ -1,6 +1,7 @@
 package com.pranta.ecommerce.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -13,6 +14,8 @@ import com.pranta.ecommerce.Entity.OrderItem;
 import com.pranta.ecommerce.Entity.Product;
 import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Entity.Order.OrderStatus;
+import com.pranta.ecommerce.Exceptions.InvalidRequestException;
+import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
 import com.pranta.ecommerce.Repository.CartRepository;
 import com.pranta.ecommerce.Repository.OrderRepository;
 import com.pranta.ecommerce.Repository.UserRepository;
@@ -33,13 +36,13 @@ public class OrderService {
     public OrderResponseDto createOrder(String email){
 
         User user = userRepository.findByEmail(email)
-                    .orElseThrow(()-> new RuntimeException("User not found"));
+                    .orElseThrow(()-> new ResourceNotFoundException("User not found with this email"));
         
         Cart cart = cartRepository.findByUserId(user.getId())
-                    .orElseThrow(() -> new RuntimeException("Cart not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Cart not found with this Id"));
 
         if (cart.getItems().isEmpty()) {
-            throw new RuntimeException("Cart is empty");
+            throw new InvalidRequestException("Cart is empty");
         }
         
         Order order = new Order();
@@ -55,7 +58,7 @@ public class OrderService {
             Product product = cartItem.getProduct();
 
             if (product.getStock() < cartItem.getQuantity()) {
-                throw new RuntimeException("Not enough stock for product : " +product.getName());
+                throw new InvalidRequestException("Not enough stock for product : " +product.getName());
             }
 
             product.setStock(product.getStock() - cartItem.getQuantity());
@@ -73,7 +76,7 @@ public class OrderService {
     public List<OrderResponseDto> getMyOrder(String email){
 
         User user = userRepository.findByEmail(email)
-                    .orElseThrow(()-> new RuntimeException("User not found"));
+                    .orElseThrow(()-> new ResourceNotFoundException("User not found with this Id"));
 
         List<Order> orders =  orderRepository.findAllByUserIdOrderByOrderDateDesc(user.getId());
         return orders.stream()
@@ -82,17 +85,23 @@ public class OrderService {
     }
 
     public List<OrderResponseDto> getAllOrder(){
-        return orderRepository.findAll().stream()
+
+        List<Order> orders = orderRepository.findAll();
+
+        if (orders.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return orders.stream()
                 .map(this::convertToDto)
                 .toList();
     }
 
      public OrderResponseDto getMyOrderById(Long orderId, String email) {
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with this Id"));
 
         Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new RuntimeException("Order not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Order not found with this Id"));
 
         if (!order.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("You are not allowed to access this order");
