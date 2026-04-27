@@ -16,6 +16,7 @@ import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Entity.Order.OrderStatus;
 import com.pranta.ecommerce.Exceptions.InvalidRequestException;
 import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
+import com.pranta.ecommerce.Exceptions.UnauthorizedAccessException;
 import com.pranta.ecommerce.Repository.CartRepository;
 import com.pranta.ecommerce.Repository.OrderRepository;
 import com.pranta.ecommerce.Repository.UserRepository;
@@ -104,7 +105,7 @@ public class OrderService {
             .orElseThrow(() -> new ResourceNotFoundException("Order not found with this Id"));
 
         if (!order.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You are not allowed to access this order");
+            throw new UnauthorizedAccessException("You are not allowed to access this order");
         }
 
         return convertToDto(order);
@@ -114,18 +115,18 @@ public class OrderService {
     @Transactional
     public OrderResponseDto updateOrderStatus(Long orderId, OrderStatus newStatus){
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with this order Id"));
         
         if (newStatus.equals(OrderStatus.CANCELLED) && order.getStatus() != OrderStatus.CANCELLED) {
             restoreStock(order);
         }
         
         if (order.getStatus() == OrderStatus.CANCELLED) {
-            throw new RuntimeException("Cancelled order cannot be updated");
+            throw new InvalidRequestException("Cancelled order cannot be updated");
         }
 
         if (order.getStatus() == OrderStatus.DELIVERED) {
-            throw new RuntimeException("Delivered order cannot be updated");
+            throw new InvalidRequestException("Delivered order cannot be updated");
         }
         
         order.setStatus(newStatus);
@@ -137,18 +138,18 @@ public class OrderService {
     @Transactional
     public OrderResponseDto cancelOrder(Long orderId, String email) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with this order Id"));
 
         if (!order.getUser().getEmail().equals(email)) {
-            throw new RuntimeException("You are not allowed to cancel this order");
+            throw new UnauthorizedAccessException("You are not allowed to cancel this order");
         }
 
         if (order.getStatus().equals(OrderStatus.SHIPPED) || order.getStatus().equals(OrderStatus.DELIVERED)) {
-            throw new RuntimeException("Order cannot be cancelled now");
+            throw new InvalidRequestException("Order cannot be cancelled now");
         }
 
         if (order.getStatus().equals(OrderStatus.CANCELLED)) {
-            throw new RuntimeException("Order is already cancelled");
+            throw new InvalidRequestException("Order is already cancelled");
         }
 
         restoreStock(order);
@@ -163,6 +164,10 @@ public class OrderService {
 
     public List<OrderResponseDto> filterByStatus(OrderStatus status){
        List<Order> orders = orderRepository.findByStatus(status);
+
+       if (orders.isEmpty()) {
+            return Collections.emptyList();
+       }
        
       return orders.stream()
             .map(this::convertToDto)
