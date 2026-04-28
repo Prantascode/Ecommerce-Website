@@ -1,5 +1,6 @@
 package com.pranta.ecommerce.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,7 +32,13 @@ public class CategoryService {
     }
 
     public List<CategoryResponeDto> getCategorys(){
-        return categoryRepository.findAll()
+
+        List<Category> categories =  categoryRepository.findAll();
+
+        if (categories.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return categories
                 .stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
