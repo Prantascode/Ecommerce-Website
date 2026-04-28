@@ -12,6 +12,8 @@ import com.pranta.ecommerce.Entity.Cart;
 import com.pranta.ecommerce.Entity.CartItem;
 import com.pranta.ecommerce.Entity.Product;
 import com.pranta.ecommerce.Entity.User;
+import com.pranta.ecommerce.Exceptions.InvalidRequestException;
+import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
 import com.pranta.ecommerce.Repository.CartItemRepository;
 import com.pranta.ecommerce.Repository.CartRepository;
 import com.pranta.ecommerce.Repository.ProductRepository;
@@ -32,7 +34,7 @@ public class CartService {
     @Transactional
     public CartItemResponseDto addToCart(CartItemRequestDto request, String email) {
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with this email"));
 
         Cart cart = cartRepository.findByUserId(user.getId())
             .orElseGet(() -> {
@@ -43,7 +45,7 @@ public class CartService {
             });
 
         Product product = productRepository.findById(request.getProductId())
-            .orElseThrow(() -> new RuntimeException("Product not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Product not found with this Id"));
         
 
         CartItem item = cartItemRepository.findByCartIdAndProductId(cart.getId(), product.getId())
@@ -58,7 +60,7 @@ public class CartService {
         int newQuantity = item.getQuantity() + request.getQuantity();
         
         if (product.getStock() < newQuantity) {
-            throw new RuntimeException("Not enough stock");
+            throw new InvalidRequestException("Not enough stock");
         }
 
         item.setPrice(product.getPrice());
@@ -74,10 +76,10 @@ public class CartService {
 
     public CartResponseDto getCartByUserEmail(String email) {
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with this email"));
 
         Cart cart = cartRepository.findByUserId(user.getId())
-            .orElseThrow(() -> new RuntimeException("Cart not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
 
         List<CartItemResponseDto> itemDtos = cart.getItems()
             .stream()
@@ -94,13 +96,13 @@ public class CartService {
     @Transactional
     public CartItemResponseDto updateCartItemQuantity(String email, Long productId, Integer newQuantity) {
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with this Id"));
 
         Cart cart = cartRepository.findByUserId(user.getId())
-            .orElseThrow(() -> new RuntimeException("Cart not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
 
         CartItem item = cartItemRepository.findByCartIdAndProductId(cart.getId(), productId)
-            .orElseThrow(() -> new RuntimeException("Item not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Items not found"));
 
         item.setQuantity(newQuantity);
         item.setTotalPrice(item.getPrice().multiply(BigDecimal.valueOf(newQuantity)));
@@ -115,10 +117,10 @@ public class CartService {
     @Transactional
     public void clearCart(String email) {
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with this Id"));
 
         Cart cart = cartRepository.findByUserId(user.getId())
-            .orElseThrow(() -> new RuntimeException("Cart not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
 
         cartItemRepository.deleteByCartId(cart.getId());
 
