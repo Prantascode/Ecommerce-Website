@@ -39,4 +39,7 @@ public class ProductRequestDto {
 
     @NotNull(message = "Category is Required")
     private Long category_id;
+
+    @NotNull(message = "Brand is Required")
+    private Long brand_id;
 }

@@ -58,4 +58,8 @@ public class Product {
     @JoinColumn(name = "Category_id",nullable = false)
     private Category category;
 
+    @ManyToOne
+    @JoinColumn(name = "Brand_id",nullable = false)
+    private Brand brand;
+
 }

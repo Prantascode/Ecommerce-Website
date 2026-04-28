@@ -2,6 +2,7 @@ package com.pranta.ecommerce.Dto;
 
 import java.math.BigDecimal;
 
+import com.pranta.ecommerce.Entity.Brand;
 import com.pranta.ecommerce.Entity.Category;
 
 import lombok.AllArgsConstructor;
@@ -21,5 +22,5 @@ public class ProductResponseDto {
     private String color;
     private boolean isAvailable;
     private Category category;
-
+    private Brand brand;
 }

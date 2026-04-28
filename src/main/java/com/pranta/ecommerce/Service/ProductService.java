@@ -8,10 +8,12 @@ import org.springframework.stereotype.Service;
 
 import com.pranta.ecommerce.Dto.ProductRequestDto;
 import com.pranta.ecommerce.Dto.ProductResponseDto;
+import com.pranta.ecommerce.Entity.Brand;
 import com.pranta.ecommerce.Entity.Category;
 import com.pranta.ecommerce.Entity.Product;
 import com.pranta.ecommerce.Exceptions.DuplicateResourceException;
 import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
+import com.pranta.ecommerce.Repository.BrandRepository;
 import com.pranta.ecommerce.Repository.CategoryRepository;
 import com.pranta.ecommerce.Repository.ProductRepository;
 
@@ -26,10 +28,15 @@ public class ProductService {
 
     private final CategoryRepository categoryRepository;
 
+    private final BrandRepository brandRepository;
+
     public ProductResponseDto createProduct(ProductRequestDto dto) {
 
         Category category = categoryRepository.findById(dto.getCategory_id())
-                    .orElseThrow(()-> new RuntimeException("Category not found"));
+                    .orElseThrow(()-> new ResourceNotFoundException("Category not found"));
+
+        Brand brand = brandRepository.findById(dto.getBrand_id())
+                    .orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
 
         String productName = dto.getName().trim();
 
@@ -45,6 +52,7 @@ public class ProductService {
         product.setStock(dto.getStock());
         product.setColor(dto.getColor());
         product.setCategory(category);
+        product.setBrand(brand);
 
 
         Product savedProduct = productRepository.save(product);
@@ -146,7 +154,8 @@ public class ProductService {
                 product.getStock(),
                 product.getColor(),
                 product.isAvailable(),
-                product.getCategory()
+                product.getCategory(),
+                product.getBrand()
         );
     }
 }
