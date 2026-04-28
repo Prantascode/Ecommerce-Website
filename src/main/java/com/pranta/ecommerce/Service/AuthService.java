@@ -7,6 +7,7 @@ import com.pranta.ecommerce.Dto.AuthResponseDto;
 import com.pranta.ecommerce.Dto.UserRequestDto;
 import com.pranta.ecommerce.Dto.UserResponseDto;
 import com.pranta.ecommerce.Entity.User;
+import com.pranta.ecommerce.Exceptions.DuplicateResourceException;
 import com.pranta.ecommerce.Exceptions.InvalidRequestException;
 import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
 import com.pranta.ecommerce.Repository.UserRepository;
@@ -24,6 +25,10 @@ public class AuthService {
 
     public UserResponseDto register(UserRequestDto dto){
 
+        if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
+            throw new DuplicateResourceException("User with this email already exists");
+        }
+        
         User user = new User();
         user.setName(dto.getName());
         user.setEmail(dto.getEmail());
