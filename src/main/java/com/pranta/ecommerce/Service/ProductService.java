@@ -43,6 +43,7 @@ public class ProductService {
         product.setPrice(dto.getPrice());
         product.setImageUrl(dto.getImageUrl());
         product.setStock(dto.getStock());
+        product.setColor(dto.getColor());
         product.setCategory(category);
 
 
@@ -143,6 +144,7 @@ public class ProductService {
                 product.getPrice(),
                 product.getImageUrl(),
                 product.getStock(),
+                product.getColor(),
                 product.isAvailable(),
                 product.getCategory()
         );

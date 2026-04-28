@@ -51,6 +51,9 @@ public class Product {
         return stock > 0;
     }
 
+    @NotBlank(message = "Color is required")
+    private String color;
+
     @ManyToOne
     @JoinColumn(name = "Category_id",nullable = false)
     private Category category;
