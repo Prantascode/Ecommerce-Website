@@ -7,6 +7,8 @@ import com.pranta.ecommerce.Dto.AuthResponseDto;
 import com.pranta.ecommerce.Dto.UserRequestDto;
 import com.pranta.ecommerce.Dto.UserResponseDto;
 import com.pranta.ecommerce.Entity.User;
+import com.pranta.ecommerce.Exceptions.InvalidRequestException;
+import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
 import com.pranta.ecommerce.Repository.UserRepository;
 import com.pranta.ecommerce.Security.Jwtutil;
 
@@ -39,10 +41,10 @@ public class AuthService {
     public AuthResponseDto login(UserRequestDto request){
 
         User user = userRepository.findByEmail(request.getEmail())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid Credentials");
+            throw new InvalidRequestException("Invalid Credentials");
         }
 
         String token = jwtutil.generateAccessToken(user.getEmail(),user.getRole().name());
