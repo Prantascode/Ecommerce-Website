@@ -66,7 +66,12 @@ public class ProductController {
     public ResponseEntity<List<ProductResponseDto>> getProductByBrand(@RequestParam Brand brand){
         return ResponseEntity.ok(productService.getProductByBrand(brand));
     }
-    
+
+    @GetMapping("/color/search")
+    public ResponseEntity<List<ProductResponseDto>> getProductByColor(@RequestParam String color){
+        return ResponseEntity.ok(productService.getProductsByColor(color));
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/stock_out")
     public ResponseEntity<?> getOutOfStockProduct(){

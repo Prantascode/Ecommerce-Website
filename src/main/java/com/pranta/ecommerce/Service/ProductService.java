@@ -101,6 +101,20 @@ public class ProductService {
                     .collect(Collectors.toList());
     }
 
+    public List<ProductResponseDto> getProductsByColor(String color){
+
+        List<Product> products = productRepository.findByColor(color);
+                    
+        if (products.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return products.stream()
+                .map(this::mapToResponse)
+                .toList();
+
+
+    }
+
     public List<ProductResponseDto> getOutOfStockProducts(){
         List<Product> products = productRepository.findByStock(0);
 
