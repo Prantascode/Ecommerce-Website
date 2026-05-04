@@ -93,6 +93,14 @@ public class ProductService {
                     .collect(Collectors.toList());
     }
 
+    public List<ProductResponseDto> getProductByBrand(Brand brand){
+
+        return productRepository.findByBrand(brand)
+                    .stream()
+                    .map(this::mapToResponse)
+                    .collect(Collectors.toList());
+    }
+
     public List<ProductResponseDto> getOutOfStockProducts(){
         List<Product> products = productRepository.findByStock(0);
 
@@ -113,6 +121,9 @@ public class ProductService {
         Category category = categoryRepository.findById(dto.getCategory_id())
                         .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
+        Brand brand = brandRepository.findById(dto.getBrand_id())
+                        .orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
+
         
         String productName = dto.getName().trim();
 
@@ -125,6 +136,8 @@ public class ProductService {
         product.setPrice(dto.getPrice());
         product.setImageUrl(dto.getImageUrl());
         product.setCategory(category);
+        product.setColor(dto.getColor());
+        product.setBrand(brand);
 
         return mapToResponse(productRepository.save(product));
     }

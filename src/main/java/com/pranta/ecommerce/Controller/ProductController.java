@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pranta.ecommerce.Dto.ProductRequestDto;
 import com.pranta.ecommerce.Dto.ProductResponseDto;
+import com.pranta.ecommerce.Entity.Brand;
 import com.pranta.ecommerce.Entity.Category;
 import com.pranta.ecommerce.Service.ProductService;
 
@@ -61,6 +62,11 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductByCategory(category));
     }
 
+    @GetMapping("/brand/search")
+    public ResponseEntity<List<ProductResponseDto>> getProductByBrand(@RequestParam Brand brand){
+        return ResponseEntity.ok(productService.getProductByBrand(brand));
+    }
+    
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/stock_out")
     public ResponseEntity<?> getOutOfStockProduct(){
