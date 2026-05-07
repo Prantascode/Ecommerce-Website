@@ -91,6 +91,12 @@ public class ProductController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("low-stock")
+    public ResponseEntity<List<ProductResponseDto>> getStockLimitResponse(@RequestParam(defaultValue = "5") int threshold){
+        return ResponseEntity.ok(productService.getStockLimitResponse(threshold));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponseDto> updateProduct(
             @PathVariable Long id,

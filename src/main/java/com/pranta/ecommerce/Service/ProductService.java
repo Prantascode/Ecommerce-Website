@@ -139,6 +139,14 @@ public class ProductService {
         );
     }
 
+    public List<ProductResponseDto> getStockLimitResponse(int threshold){
+        List<Product> products = productRepository.findByStockLessThanEqual(threshold);
+
+        return products.stream()
+                    .map(this::mapToResponse)
+                    .toList();
+    }
+
     @Transactional
     public ProductResponseDto updateProduct(Long id, ProductRequestDto dto) {
 
