@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.pranta.ecommerce.Dto.ProductRequestDto;
 import com.pranta.ecommerce.Dto.ProductResponseDto;
+import com.pranta.ecommerce.Dto.ProductStockResponseDto;
 import com.pranta.ecommerce.Entity.Brand;
 import com.pranta.ecommerce.Entity.Category;
 import com.pranta.ecommerce.Entity.Product;
@@ -124,6 +125,18 @@ public class ProductService {
         return products.stream()
                 .map(this::mapToResponse)
                 .toList();
+    }
+
+    public ProductStockResponseDto getStockByProduct(Long productId){
+        Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Product Not found with this ID"));
+
+        
+        return new ProductStockResponseDto(
+            product.getId(),
+            product.getName(),
+            product.getStock()
+        );
     }
 
     @Transactional

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pranta.ecommerce.Dto.ProductRequestDto;
 import com.pranta.ecommerce.Dto.ProductResponseDto;
+import com.pranta.ecommerce.Dto.ProductStockResponseDto;
 import com.pranta.ecommerce.Entity.Brand;
 import com.pranta.ecommerce.Entity.Category;
 import com.pranta.ecommerce.Service.ProductService;
@@ -81,6 +82,12 @@ public class ProductController {
             return ResponseEntity.ok("No out of stock's products");
         }
         return ResponseEntity.ok(products);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/{productId}/stock")
+    public ResponseEntity<ProductStockResponseDto> getStockByProductId(@PathVariable Long productId){
+        return ResponseEntity.ok(productService.getStockByProduct(productId));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
