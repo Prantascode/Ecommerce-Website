@@ -26,10 +26,6 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Name is Required")
-    @Column(nullable = false)
-    private String name;
-
     @NotBlank(message = "Email is Required")
     @Column(unique = true, nullable = false)
     private String email;
@@ -46,6 +42,4 @@ public class User {
     }
 
     private boolean active;
-
-    private String address;
 }
