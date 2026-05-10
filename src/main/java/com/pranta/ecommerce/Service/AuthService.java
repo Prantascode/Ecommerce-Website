@@ -4,8 +4,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.pranta.ecommerce.Dto.AuthResponseDto;
-import com.pranta.ecommerce.Dto.UserRequestDto;
-import com.pranta.ecommerce.Dto.UserResponseDto;
+import com.pranta.ecommerce.Dto.LoginRequest;
+import com.pranta.ecommerce.Dto.RegistationDto;
+import com.pranta.ecommerce.Dto.Register_LoginResponseDto;
 import com.pranta.ecommerce.Entity.Customer;
 import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Exceptions.DuplicateResourceException;
@@ -26,19 +27,17 @@ public class AuthService {
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
 
-    public UserResponseDto register(UserRequestDto dto){
+    public Register_LoginResponseDto register(RegistationDto dto){
 
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new DuplicateResourceException("User with this email already exists");
         }
         
         User user = new User();
-        //user.setName(dto.getName());
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setRole(User.Role.USER);
         user.setActive(true);
-        //user.setAddress(dto.getAddress());
 
         User saveUser = userRepository.save(user);
 
@@ -53,7 +52,7 @@ public class AuthService {
     }
 
     
-    public AuthResponseDto login(UserRequestDto request){
+    public AuthResponseDto login(LoginRequest request){
 
         User user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -62,25 +61,45 @@ public class AuthService {
             throw new InvalidRequestException("Invalid Credentials");
         }
 
-        Customer customer = customerRepository.findByUser(user)
-                        .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
-
         String token = jwtutil.generateAccessToken(user.getEmail(),user.getRole().name());
+        Register_LoginResponseDto userDto;
+         if (user.getRole() == User.Role.ADMIN) {
+            userDto = mapAdminToDto(user);
+        } else {
+            Customer customer = customerRepository.findByUser(user)
+                    .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
-        UserResponseDto userDto = mapToDto(user, customer);
-
+            userDto = mapToDto(user, customer);
+        }
+        
         return new AuthResponseDto(token,userDto);
     }
-    private UserResponseDto mapToDto(User user, Customer customer){
-        UserResponseDto dto = new UserResponseDto();
+
+    private Register_LoginResponseDto mapToDto(User user, Customer customer){
+
+        Register_LoginResponseDto dto = new Register_LoginResponseDto();
 
         dto.setId(user.getId());
-        //dto.setCustomerId(customer.getId());
         dto.setName(customer.getName());
         dto.setEmail(user.getEmail());
         dto.setRole(user.getRole());
         dto.setActive(user.isActive());
+
         return dto;
 
     }
+
+    private Register_LoginResponseDto mapAdminToDto(User user){
+
+        Register_LoginResponseDto dto = new Register_LoginResponseDto();
+
+        dto.setId(user.getId());
+        dto.setName("Admin");
+        dto.setEmail(user.getEmail());
+        dto.setRole(user.getRole());
+        dto.setActive(user.isActive());
+
+        return dto;
+    }
+
 }
