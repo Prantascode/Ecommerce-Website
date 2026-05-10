@@ -1,11 +1,13 @@
 package com.pranta.ecommerce.Dto;
 
 
-import com.pranta.ecommerce.Entity.User.Role;
 
-import jakarta.validation.constraints.Email;
+import jakarta.persistence.Column;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,19 +18,34 @@ import lombok.NoArgsConstructor;
 
 public class UserRequestDto {
     
-    @NotBlank
+    @NotBlank(message = "Name is required")
+    @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
+    @Column(nullable = false)
     private String name;
 
-    @Email
-    @NotBlank
+    @NotBlank(message = "Email is Required")
+    @Column(unique = true, nullable = false)
     private String email;
 
-    @NotBlank
+    @NotBlank(message = "Password is Required")
+    @Column(nullable = false)
     private String password;
 
-    @NotNull
-    private Role role;
+    @Pattern(
+            regexp = "^(\\+8801|01)[3-9][0-9]{8}$",
+            message = "Invalid Bangladeshi phone number"
+    )
+    @Column(unique = true)
+    private String phone;
 
-    @NotBlank
+    @Size(max = 255, message = "Address cannot exceed 255 characters")
     private String address;
+
+    @Size(max = 100, message = "City cannot exceed 100 characters")
+    private String city;
+
+    @Size(max = 100, message = "Country cannot exceed 100 characters")
+    private String country;
+
+    private String postCode;
 }

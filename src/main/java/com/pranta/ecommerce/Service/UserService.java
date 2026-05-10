@@ -11,9 +11,11 @@ import org.springframework.stereotype.Service;
 
 import com.pranta.ecommerce.Dto.UserRequestDto;
 import com.pranta.ecommerce.Dto.UserResponseDto;
+import com.pranta.ecommerce.Entity.Customer;
 import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Exceptions.InvalidRequestException;
 import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
+import com.pranta.ecommerce.Repository.CustomerRepository;
 import com.pranta.ecommerce.Repository.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -24,16 +26,23 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
 
     private final UserRepository userRepository;
+
+    private final CustomerRepository customerRepository;
      
     public List<UserResponseDto> getAllUsers() {
         
         List<User> users = userRepository.findAll();
+
         if (users.isEmpty()) {
             return Collections.emptyList();
         }
         return users
                 .stream()
-                .map(this::mapResponseDto)
+                .map(user -> {
+                    Customer customer = customerRepository.findByUser(user)
+                                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+                    return mapResponseDto(user, customer);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -41,14 +50,20 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with this id"));
 
-        return mapResponseDto(user);
+        Customer customer = customerRepository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+
+        return mapResponseDto(user,customer);
     }
 
     public UserResponseDto getUserByEmail(String email){
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with this Email"));
 
-        return mapResponseDto(user);
+        Customer customer = customerRepository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+
+        return mapResponseDto(user,customer);
     }
 
     public List<UserResponseDto> getUserByRole(User.Role role){
@@ -58,7 +73,11 @@ public class UserService {
             return Collections.emptyList();
         }
         return users.stream()
-                .map(this::mapResponseDto)
+                .map(user -> {
+                    Customer customer = customerRepository.findByUser(user)
+                                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+                    return mapResponseDto(user, customer);
+                })
                 .toList();
     }
 
@@ -66,21 +85,34 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found by this mail"));
 
-        return mapResponseDto(user);
+        Customer customer = customerRepository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+
+        return mapResponseDto(user,customer);
     }
 
     @Transactional
     public UserResponseDto UpdateMyProfile(String email,UserRequestDto dto){
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found by this mail"));
+
+        Customer customer = customerRepository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+
         user.setEmail(dto.getEmail());
-        user.setName(dto.getName());
+        customer.setName(dto.getName());
         user.setPassword(dto.getPassword());
-        user.setAddress(dto.getAddress());
+        customer.setAddress(dto.getAddress());
+        customer.setPhone(dto.getPhone());
+        customer.setCity(dto.getCity());
+        customer.setCountry(dto.getCountry());
+        customer.setPostCode(dto.getPostCode());
 
-        User updated = userRepository.save(user);
+        User updatedUser = userRepository.save(user);
 
-        return mapResponseDto(updated);
+        Customer updatedCustomer = customerRepository.save(customer);
+
+        return mapResponseDto(updatedUser,updatedCustomer);
     }
 
     public void deactivateUser(Long userId){
@@ -114,18 +146,27 @@ public class UserService {
             return Collections.emptyList();
         }
         return users.stream()
-                .map(this::mapResponseDto)
+                .map(user -> {
+                    Customer customer = customerRepository.findByUser(user)
+                                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+                    return mapResponseDto(user, customer);
+                })
                 .toList();
                
     }
-    private UserResponseDto mapResponseDto(User user){
+    private UserResponseDto mapResponseDto(User user,Customer customer){
         return new UserResponseDto(
                 user.getId(),
-                user.getName(),
+                customer.getId(),
+                customer.getName(),
                 user.getEmail(),
                 user.getRole(),
                 user.isActive(),
-                user.getAddress()
+                customer.getAddress(),
+                customer.getPhone(),
+                customer.getCity(),
+                customer.getCountry(),
+                customer.getPostCode()
         );
 
     }

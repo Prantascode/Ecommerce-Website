@@ -75,7 +75,7 @@ public class AuthService {
         UserResponseDto dto = new UserResponseDto();
 
         dto.setId(user.getId());
-        dto.setCustomerId(customer.getId());
+        //dto.setCustomerId(customer.getId());
         dto.setName(customer.getName());
         dto.setEmail(user.getEmail());
         dto.setRole(user.getRole());
