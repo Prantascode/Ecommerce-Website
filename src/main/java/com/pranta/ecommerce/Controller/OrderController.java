@@ -41,7 +41,7 @@ public class OrderController {
         return new ResponseEntity<>(response,HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/myOrder")
     public ResponseEntity<List<OrderResponseDto>> myOrder(Authentication authentication){
         String email = authentication.getName();

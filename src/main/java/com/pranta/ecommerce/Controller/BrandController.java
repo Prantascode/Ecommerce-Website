@@ -34,7 +34,7 @@ public class BrandController {
         );
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    //@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @GetMapping
     public ResponseEntity<List<BrandResponseDto>> getBrands(){
         return ResponseEntity.ok(brandService.getAllBrands());

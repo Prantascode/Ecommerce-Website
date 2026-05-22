@@ -33,7 +33,7 @@ public class CategoryController {
             HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     @GetMapping()
     public ResponseEntity<List<CategoryResponeDto>> getCategorys(){
         return ResponseEntity.ok(categoryService.getCategorys());

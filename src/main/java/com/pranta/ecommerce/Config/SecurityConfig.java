@@ -2,6 +2,7 @@ package com.pranta.ecommerce.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -45,7 +46,37 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer :: disable)
             .sessionManagement(Session -> Session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth 
-                .requestMatchers("/api/auth/**").permitAll()  
+                .requestMatchers("/api/auth/**").permitAll() 
+                .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/category/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/brand/**").permitAll() 
+
+                .requestMatchers(HttpMethod.POST, "/api/products/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
+
+                 // Category management - ADMIN only
+                .requestMatchers(HttpMethod.POST, "/api/categories/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/categories/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/categories/**").hasRole("ADMIN")
+
+                // Cart APIs - USER only
+                .requestMatchers("/api/cart/**").hasRole("USER")
+
+                // Order APIs
+                .requestMatchers(HttpMethod.POST, "/api/orders/**").hasRole("USER")
+                .requestMatchers(HttpMethod.GET, "/api/orders/my-orders").hasRole("USER")
+                .requestMatchers(HttpMethod.PUT, "/api/orders/cancel/**").hasRole("USER")
+
+                // Admin order management
+                .requestMatchers(HttpMethod.GET, "/api/orders/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/orders/status/**").hasRole("ADMIN")
+
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/users/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/users/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
+
                 .anyRequest().authenticated())
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
                       
