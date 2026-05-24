@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OrderResponseDto {
     private Long id;
-    private Long userId;
+    private Long customerId;
 
     // Ensures the JSON looks like 100.00 instead of 100
     @JsonFormat(shape = JsonFormat.Shape.STRING)

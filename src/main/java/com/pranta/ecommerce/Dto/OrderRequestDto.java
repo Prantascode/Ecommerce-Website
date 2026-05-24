@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 public class OrderRequestDto {
 
     @NotNull(message = "User ID is required")
-    private Long userId;
+    private Long customerId;
 
     @NotEmpty(message = "Order must have at least one item")
     @Valid
