@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.pranta.ecommerce.Dto.OrderItemResponseDto;
 import com.pranta.ecommerce.Dto.OrderResponseDto;
 import com.pranta.ecommerce.Entity.Cart;
+import com.pranta.ecommerce.Entity.Customer;
 import com.pranta.ecommerce.Entity.Order;
 import com.pranta.ecommerce.Entity.OrderItem;
 import com.pranta.ecommerce.Entity.Product;
@@ -18,6 +19,7 @@ import com.pranta.ecommerce.Exceptions.InvalidRequestException;
 import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
 import com.pranta.ecommerce.Exceptions.UnauthorizedAccessException;
 import com.pranta.ecommerce.Repository.CartRepository;
+import com.pranta.ecommerce.Repository.CustomerRepository;
 import com.pranta.ecommerce.Repository.OrderRepository;
 import com.pranta.ecommerce.Repository.UserRepository;
 
@@ -29,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 public class OrderService {
 
     private final UserRepository userRepository;
+    private final CustomerRepository customerRepository;
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
     private final OrderItemService orderItemService;
@@ -38,8 +41,11 @@ public class OrderService {
 
         User user = userRepository.findByEmail(email)
                     .orElseThrow(()-> new ResourceNotFoundException("User not found with this email"));
+
+        Customer customer = customerRepository.findByUser(user)
+                    .orElseThrow(()-> new ResourceNotFoundException("Customer not found"));
         
-        Cart cart = cartRepository.findByUserId(user.getId())
+        Cart cart = cartRepository.findByCustomerId(customer.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Cart not found with this Id"));
 
         if (cart.getItems().isEmpty()) {
@@ -47,7 +53,7 @@ public class OrderService {
         }
         
         Order order = new Order();
-        order.setUser(cart.getUser());
+        order.setCustomer(cart.getCustomer());
         order.setTotalAmount(cart.getGrandTotal());
         order.setStatus(OrderStatus.PENDING);
         order.setOrderDate(LocalDateTime.now());
@@ -79,7 +85,10 @@ public class OrderService {
         User user = userRepository.findByEmail(email)
                     .orElseThrow(()-> new ResourceNotFoundException("User not found with this Id"));
 
-        List<Order> orders =  orderRepository.findAllByUserIdOrderByOrderDateDesc(user.getId());
+        Customer customer = customerRepository.findByUser(user)
+                    .orElseThrow(()-> new ResourceNotFoundException("Customer not found"));
+
+        List<Order> orders =  orderRepository.findAllByCustomerIdOrderByOrderDateDesc(customer.getId());
         return orders.stream()
             .map(this::convertToDto)
             .toList();              
@@ -100,11 +109,14 @@ public class OrderService {
      public OrderResponseDto getMyOrderById(Long orderId, String email) {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new ResourceNotFoundException("User not found with this Id"));
+        
+        Customer customer = customerRepository.findByUser(user)
+                    .orElseThrow(()-> new ResourceNotFoundException("Customer not found"));
 
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new ResourceNotFoundException("Order not found with this Id"));
 
-        if (!order.getUser().getId().equals(user.getId())) {
+        if (!order.getCustomer().getId().equals(customer.getId())) {
             throw new UnauthorizedAccessException("You are not allowed to access this order");
         }
 
@@ -139,8 +151,9 @@ public class OrderService {
     public OrderResponseDto cancelOrder(Long orderId, String email) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with this order Id"));
+        
 
-        if (!order.getUser().getEmail().equals(email)) {
+        if (!order.getCustomer().getUser().getEmail().equals(email)) {
             throw new UnauthorizedAccessException("You are not allowed to cancel this order");
         }
 
@@ -189,7 +202,7 @@ public class OrderService {
     private OrderResponseDto mapToResponse(Order order, List<OrderItemResponseDto> orderItems){
         return new OrderResponseDto(
             order.getId(),
-            order.getUser().getId(),
+            order.getCustomer().getId(),
             order.getTotalAmount(),
             order.getStatus(),
             order.getOrderDate(),
