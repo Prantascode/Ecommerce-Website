@@ -10,12 +10,14 @@ import com.pranta.ecommerce.Dto.CartItemResponseDto;
 import com.pranta.ecommerce.Dto.CartResponseDto;
 import com.pranta.ecommerce.Entity.Cart;
 import com.pranta.ecommerce.Entity.CartItem;
+import com.pranta.ecommerce.Entity.Customer;
 import com.pranta.ecommerce.Entity.Product;
 import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Exceptions.InvalidRequestException;
 import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
 import com.pranta.ecommerce.Repository.CartItemRepository;
 import com.pranta.ecommerce.Repository.CartRepository;
+import com.pranta.ecommerce.Repository.CustomerRepository;
 import com.pranta.ecommerce.Repository.ProductRepository;
 import com.pranta.ecommerce.Repository.UserRepository;
 
@@ -27,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 public class CartService {
     
     private final UserRepository userRepository;
+    private final CustomerRepository customerRepository;
     private final ProductRepository productRepository;
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
@@ -36,10 +39,13 @@ public class CartService {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new ResourceNotFoundException("User not found with this email"));
 
-        Cart cart = cartRepository.findByUserId(user.getId())
+        Customer customer = customerRepository.findByUser(user)
+                    .orElseThrow(()-> new ResourceNotFoundException("Customer not Found"));
+
+        Cart cart = cartRepository.findByCustomerId(customer.getId())
             .orElseGet(() -> {
                 Cart newCart = new Cart();
-                newCart.setUser(user);
+                newCart.setCustomer(customer);
                 newCart.setGrandTotal(BigDecimal.ZERO);
                 return cartRepository.save(newCart);
             });
@@ -77,8 +83,11 @@ public class CartService {
     public CartResponseDto getCartByUserEmail(String email) {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new ResourceNotFoundException("User not found with this email"));
+        
+        Customer customer = customerRepository.findByUser(user)
+                    .orElseThrow(()-> new ResourceNotFoundException("Customer not Found"));
 
-        Cart cart = cartRepository.findByUserId(user.getId())
+        Cart cart = cartRepository.findByCustomerId(customer.getId())
             .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
 
         List<CartItemResponseDto> itemDtos = cart.getItems()
@@ -98,7 +107,10 @@ public class CartService {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new ResourceNotFoundException("User not found with this Id"));
 
-        Cart cart = cartRepository.findByUserId(user.getId())
+        Customer customer = customerRepository.findByUser(user)
+                    .orElseThrow(()-> new ResourceNotFoundException("Customer not Found"));
+
+        Cart cart = cartRepository.findByCustomerId(customer.getId())
             .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
 
         CartItem item = cartItemRepository.findByCartIdAndProductId(cart.getId(), productId)
@@ -118,8 +130,11 @@ public class CartService {
     public void clearCart(String email) {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new ResourceNotFoundException("User not found with this Id"));
+        
+        Customer customer = customerRepository.findByUser(user)
+                    .orElseThrow(()-> new ResourceNotFoundException("Customer not Found"));
 
-        Cart cart = cartRepository.findByUserId(user.getId())
+        Cart cart = cartRepository.findByCustomerId(customer.getId())
             .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
 
         cartItemRepository.deleteByCartId(cart.getId());
