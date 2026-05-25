@@ -65,12 +65,14 @@ public class SecurityConfig {
 
                 // Order APIs
                 .requestMatchers(HttpMethod.POST, "/api/orders/**").hasRole("USER")
-                .requestMatchers(HttpMethod.GET, "/api/orders/my-orders").hasRole("USER")
-                .requestMatchers(HttpMethod.PUT, "/api/orders/cancel/**").hasRole("USER")
+                .requestMatchers(HttpMethod.GET, "/api/orders/myOrder").hasRole("USER")
+                .requestMatchers(HttpMethod.GET, "/api/orders/{orderId}").hasRole("USER")
+                .requestMatchers(HttpMethod.PUT, "/api/orders/{orderId}/cancel").hasRole("USER")
 
                 // Admin order management
-                .requestMatchers(HttpMethod.GET, "/api/orders/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/orders/status/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/orders/all").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/orders/{orderId}/status").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/orders/filter/{status}").hasRole("ADMIN")
 
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/users/**").hasRole("ADMIN")
