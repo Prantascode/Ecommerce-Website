@@ -80,7 +80,7 @@ public class OrderController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("filter/{status}")
+    @GetMapping("/filter/{status}")
     public ResponseEntity<List<OrderResponseDto>> filterByStatus(@PathVariable OrderStatus status){
         return ResponseEntity.ok(orderService.filterByStatus(status));
     }
