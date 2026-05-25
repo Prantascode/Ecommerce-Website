@@ -88,7 +88,7 @@ public class OrderService {
         Customer customer = customerRepository.findByUser(user)
                     .orElseThrow(()-> new ResourceNotFoundException("Customer not found"));
 
-        List<Order> orders =  orderRepository.findAllByCustomerIdOrderByOrderDateDesc(customer.getId());
+        List<Order> orders =  orderRepository.findAllByCustomerOrderByOrderDateDesc(customer);
         return orders.stream()
             .map(this::convertToDto)
             .toList();              
