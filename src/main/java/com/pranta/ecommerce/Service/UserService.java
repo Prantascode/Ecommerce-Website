@@ -7,8 +7,10 @@ import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.pranta.ecommerce.Dto.UpdateEmailDto;
 import com.pranta.ecommerce.Dto.UserRequestDto;
 import com.pranta.ecommerce.Dto.UserResponseDto;
 import com.pranta.ecommerce.Entity.Customer;
@@ -28,6 +30,8 @@ public class UserService {
     private final UserRepository userRepository;
 
     private final CustomerRepository customerRepository;
+
+    private final PasswordEncoder passwordEncoder;
      
     public List<UserResponseDto> getAllUsers() {
         
@@ -92,28 +96,37 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponseDto UpdateMyProfile(String email,UserRequestDto dto){
+    public String UpdateMyEmail(String currentEmail, UpdateEmailDto dto) {
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found by this mail"));
+
+        if(!passwordEncoder.matches(dto.getPassword(), user.getPassword())){
+            throw new InvalidRequestException("Invalid password");
+        }
+
+        if(userRepository.existsByEmail(dto.getNewEmail())){
+            throw new InvalidRequestException("Email already exists");
+        }
+        user.setEmail(dto.getNewEmail().trim());
+
+       return "Email updated successfully, Please login again with your new email";
+    }
+
+    @Transactional
+    public String UpdatePassword(String email, String newPassword, String currentPassword) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found by this mail"));
 
-        Customer customer = customerRepository.findByUser(user)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+        if(!passwordEncoder.matches(currentPassword, user.getPassword())){
+            throw new InvalidRequestException("Invalid current password");
+        }
 
-        user.setEmail(dto.getEmail());
-        customer.setName(dto.getName());
-        user.setPassword(dto.getPassword());
-        customer.setAddress(dto.getAddress());
-        customer.setPhone(dto.getPhone());
-        customer.setCity(dto.getCity());
-        customer.setCountry(dto.getCountry());
-        customer.setPostCode(dto.getPostCode());
+        user.setPassword(passwordEncoder.encode(newPassword.trim()));
+        userRepository.save(user);
 
-        User updatedUser = userRepository.save(user);
-
-        Customer updatedCustomer = customerRepository.save(customer);
-
-        return mapResponseDto(updatedUser,updatedCustomer);
+       return "Password updated successfully";
     }
+
 
     public void deactivateUser(Long userId){
         User user = userRepository.findById(userId)
@@ -158,7 +171,7 @@ public class UserService {
         return new UserResponseDto(
                 user.getId(),
                 customer.getId(),
-                customer.getName(),
+                user.getName(),
                 user.getEmail(),
                 user.getRole(),
                 user.isActive(),
