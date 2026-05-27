@@ -16,6 +16,7 @@ import com.pranta.ecommerce.Repository.CustomerRepository;
 import com.pranta.ecommerce.Repository.UserRepository;
 import com.pranta.ecommerce.Security.Jwtutil;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -27,43 +28,49 @@ public class AuthService {
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
 
-    public Register_LoginResponseDto register(RegistationDto dto){
+    @Transactional
+    public Register_LoginResponseDto register(RegistationDto dto) {
 
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new DuplicateResourceException("User with this email already exists");
         }
-        
+
         User user = new User();
+        user.setName(dto.getName());
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setRole(User.Role.USER);
         user.setActive(true);
 
-        User saveUser = userRepository.save(user);
+        User savedUser = userRepository.save(user);
 
         Customer customer = new Customer();
+        customer.setUser(savedUser);
 
-        customer.setName(dto.getName());
-        customer.setUser(saveUser);
+        Customer savedCustomer = customerRepository.save(customer);
 
-       Customer saveCustomer = customerRepository.save(customer);
-        
-        return mapToDto(saveUser, saveCustomer);
+        return mapToDto(savedUser, savedCustomer);
     }
 
     
-    public AuthResponseDto login(LoginRequest request){
+    public AuthResponseDto login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
-                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (!user.isActive()) {
+            throw new InvalidRequestException("Your account is inactive");
+        }
+
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new InvalidRequestException("Invalid Credentials");
         }
 
-        String token = jwtutil.generateAccessToken(user.getEmail(),user.getRole().name());
+        String token = jwtutil.generateAccessToken(user.getEmail(), user.getRole().name());
+
         Register_LoginResponseDto userDto;
-         if (user.getRole() == User.Role.ADMIN) {
+
+        if (user.getRole() == User.Role.ADMIN) {
             userDto = mapAdminToDto(user);
         } else {
             Customer customer = customerRepository.findByUser(user)
@@ -71,8 +78,8 @@ public class AuthService {
 
             userDto = mapToDto(user, customer);
         }
-        
-        return new AuthResponseDto(token,userDto);
+
+        return new AuthResponseDto(token, userDto);
     }
 
     private Register_LoginResponseDto mapToDto(User user, Customer customer){
@@ -80,7 +87,7 @@ public class AuthService {
         Register_LoginResponseDto dto = new Register_LoginResponseDto();
 
         dto.setId(user.getId());
-        dto.setName(customer.getName());
+        dto.setName(user.getName());
         dto.setEmail(user.getEmail());
         dto.setRole(user.getRole());
         dto.setActive(user.isActive());
@@ -94,7 +101,7 @@ public class AuthService {
         Register_LoginResponseDto dto = new Register_LoginResponseDto();
 
         dto.setId(user.getId());
-        dto.setName("Admin");
+        dto.setName(user.getName());
         dto.setEmail(user.getEmail());
         dto.setRole(user.getRole());
         dto.setActive(user.isActive());
