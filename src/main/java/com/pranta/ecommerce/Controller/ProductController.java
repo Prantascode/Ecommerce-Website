@@ -58,6 +58,14 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductByName(name));
     }
 
+    @GetMapping("/price/search")
+    public ResponseEntity<List<ProductResponseDto>> getProductByPriceRange(
+        @RequestParam double minPrice,
+        @RequestParam double maxPrice
+    ){
+        return ResponseEntity.ok(productService.getProductByPriceRange(minPrice, maxPrice));
+    }
+
     @GetMapping("/category/search")
     public ResponseEntity<List<ProductResponseDto>> getProductByCategory(@RequestParam Category category){
         return ResponseEntity.ok(productService.getProductByCategory(category));

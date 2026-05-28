@@ -86,6 +86,17 @@ public class ProductService {
         return mapToResponse(product);
     }
 
+    public List<ProductResponseDto> getProductByPriceRange(double minPrice, double maxPrice){
+        List<Product> products = productRepository.findByPriceBetween(minPrice, maxPrice);
+
+        if (products.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return products.stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
     public List<ProductResponseDto> getProductByCategory(Category category){
 
         return productRepository.findByCategory(category)

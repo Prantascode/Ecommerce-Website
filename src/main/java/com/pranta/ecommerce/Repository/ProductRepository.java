@@ -23,4 +23,7 @@ public interface ProductRepository extends JpaRepository<Product,Long>{
     List<Product> findByColor(String color);
 
     List<Product> findByStockLessThanEqual(int threshold);
+
+    List<Product> findByPriceBetween(double minPrice, double maxPrice);
+
 }
