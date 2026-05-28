@@ -45,6 +45,10 @@ public class OrderService {
         Customer customer = customerRepository.findByUser(user)
                     .orElseThrow(()-> new ResourceNotFoundException("Customer not found"));
         
+        if(customer.getAddress().isEmpty()) {
+            throw new InvalidRequestException("Please add an address before placing an order");
+        }
+        
         Cart cart = cartRepository.findByCustomerId(customer.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Cart not found with this Id"));
 
