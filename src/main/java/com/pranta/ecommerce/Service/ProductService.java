@@ -1,11 +1,14 @@
 package com.pranta.ecommerce.Service;
 
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
+import com.pranta.ecommerce.Dto.ProductDiscountRequestDto;
 import com.pranta.ecommerce.Dto.ProductRequestDto;
 import com.pranta.ecommerce.Dto.ProductResponseDto;
 import com.pranta.ecommerce.Dto.ProductStockResponseDto;
@@ -150,6 +153,7 @@ public class ProductService {
         );
     }
 
+    @Transactional
     public List<ProductResponseDto> getStockLimitResponse(int threshold){
         List<Product> products = productRepository.findByStockLessThanEqual(threshold);
 
@@ -203,7 +207,55 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
+
+    @Transactional
+    public ProductResponseDto applyDiscount(Long productId, ProductDiscountRequestDto dto) {
+        Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with this id"));
+
+        if(dto.getDiscountStartDate() != null && dto.getDiscountEndDate() != null){
+           if (!dto.getDiscountStartDate().isBefore(dto.getDiscountEndDate())) {
+                throw new IllegalArgumentException("Discount start date must be before end date");
+           }
+           if (dto.getDiscountEndDate().isBefore(LocalDateTime.now())) {
+                throw new IllegalArgumentException("End date must be in the future");
+           }
+        }
+
+        product.setDiscountPercent(dto.getDiscountPercent());
+        product.setIsDiscounted(dto.getIsDiscounted());
+        product.setDiscountStartDate(dto.getDiscountStartDate());
+        product.setDiscountEndDate(dto.getDiscountEndDate());
+
+        return mapToResponse(productRepository.save(product));
+    }
+
+    @Transactional
+    public ProductResponseDto removeDiscount(Long productId) {
+        Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with this id"));
+
+        product.setDiscountPercent(BigDecimal.ZERO);
+        product.setIsDiscounted(false);
+        product.setDiscountStartDate(null);
+        product.setDiscountEndDate(null);
+
+        return mapToResponse(productRepository.save(product));
+    }
+
+    @Transactional
+    public ProductResponseDto toggleDiscount(Long productId, boolean isDiscounted) {
+        Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with this id"));
+
+        product.setIsDiscounted(isDiscounted);
+        return mapToResponse(productRepository.save(product));
+    }
+
     private ProductResponseDto mapToResponse(Product product) {
+        BigDecimal orginalPrice = product.getPrice();
+        BigDecimal discountedPrice = product.getDiscountedPrice();
+        BigDecimal savedAmount = orginalPrice.subtract(discountedPrice);
         return new ProductResponseDto(
                 product.getId(),
                 product.getName(),
@@ -214,7 +266,14 @@ public class ProductService {
                 product.getColor(),
                 product.isAvailable(),
                 product.getCategory(),
-                product.getBrand()
+                product.getBrand(),
+                product.getDiscountPercent(),
+                product.getIsDiscounted(),
+                product.isDiscountCurrentlyActive(),
+                discountedPrice,
+                savedAmount,
+                product.getDiscountStartDate(),
+                product.getDiscountEndDate()
         );
     }
 }
