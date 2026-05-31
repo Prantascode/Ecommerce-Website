@@ -20,6 +20,7 @@ import com.pranta.ecommerce.Entity.Payment.PaymentStatus;
 import com.pranta.ecommerce.Repository.OrderRepository;
 import com.pranta.ecommerce.Repository.PaymentRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,6 +33,7 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
 
+    @Transactional
     public PaymentResponseDto initiatePayment(Long orderId, String email) {
 
         
@@ -123,5 +125,29 @@ public class PaymentService {
             return new PaymentResponseDto("FAILED", null, null, e.getMessage());
         }
 
+    }
+
+    public boolean validatePayment(String ValId){
+        String url = sslCommerzConfig.getBaseUrl() + sslCommerzConfig.getValidationUrl() 
+                        + "?val_id=" + ValId 
+                        + "&store_id=" + sslCommerzConfig.getStoreId() 
+                        + "&store_passwd=" + sslCommerzConfig.getStorePassword() 
+                        + "&v=1&format=json";
+
+        try {
+            ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+            Map<String, Object> body = response.getBody();
+
+            if (body != null && "VALID".equals(body.get("status"))) {
+                return true;
+            }
+
+            log.error("SSLCommerz validation failed: {}", body);
+            return false;
+
+        } catch (Exception e) {
+            log.error("SSLCommerz validation error: {}", e.getMessage());
+            return false;
+        }
     }
 }
