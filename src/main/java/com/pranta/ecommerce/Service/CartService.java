@@ -69,9 +69,9 @@ public class CartService {
             throw new InvalidRequestException("Not enough stock");
         }
 
-        item.setPrice(product.getPrice());
+        item.setPrice(product.getDiscountedPrice());
         item.setQuantity(item.getQuantity() + request.getQuantity());
-        item.setTotalPrice(product.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
+        item.setTotalPrice(product.getDiscountedPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
 
         CartItem savedItem = cartItemRepository.save(item);
 
