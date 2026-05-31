@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pranta.ecommerce.Dto.ProductDiscountRequestDto;
 import com.pranta.ecommerce.Dto.ProductRequestDto;
 import com.pranta.ecommerce.Dto.ProductResponseDto;
 import com.pranta.ecommerce.Dto.ProductStockResponseDto;
@@ -127,4 +128,31 @@ public class ProductController {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/discount/{productId}")
+    public ResponseEntity<ProductResponseDto> applyDiscount(
+        @PathVariable Long productId,
+       @Valid @RequestBody ProductDiscountRequestDto discountRequest
+    ){
+        return ResponseEntity.ok(productService.applyDiscount(productId, discountRequest));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/discount/remove/{productId}")
+    public ResponseEntity<ProductResponseDto> removeDiscount(
+        @PathVariable Long productId
+    ){
+        return ResponseEntity.ok(productService.removeDiscount(productId));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/discount/toggle/{productId}")
+    public ResponseEntity<ProductResponseDto> toggleDiscount(
+        @PathVariable Long productId,
+        @RequestParam boolean isDiscounted
+    ){
+        return ResponseEntity.ok(productService.toggleDiscount(productId, isDiscounted));
+    }
 }
+
