@@ -1,6 +1,7 @@
 package com.pranta.ecommerce.Entity;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -74,8 +75,8 @@ public class Product {
 
     public BigDecimal getDiscountedPrice() {
         if (isDiscountCurrentlyActive()) {
-            BigDecimal savings = price.multiply(discountPercent.divide(BigDecimal.valueOf(100), 2, BigDecimal.ROUND_HALF_UP));
-            return price.subtract(savings).setScale(2, BigDecimal.ROUND_HALF_UP); // Round to 2 decimal places
+            BigDecimal savings = price.multiply(discountPercent.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP));
+            return price.subtract(savings).setScale(2, RoundingMode.HALF_UP);
         }
         return price;
     }

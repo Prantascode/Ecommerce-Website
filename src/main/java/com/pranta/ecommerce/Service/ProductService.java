@@ -16,6 +16,7 @@ import com.pranta.ecommerce.Entity.Brand;
 import com.pranta.ecommerce.Entity.Category;
 import com.pranta.ecommerce.Entity.Product;
 import com.pranta.ecommerce.Exceptions.DuplicateResourceException;
+import com.pranta.ecommerce.Exceptions.InvalidRequestException;
 import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
 import com.pranta.ecommerce.Repository.BrandRepository;
 import com.pranta.ecommerce.Repository.CategoryRepository;
@@ -213,13 +214,16 @@ public class ProductService {
         Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new ResourceNotFoundException("Product not found with this id"));
 
-        if(dto.getDiscountStartDate() != null && dto.getDiscountEndDate() != null){
-           if (!dto.getDiscountStartDate().isBefore(dto.getDiscountEndDate())) {
-                throw new IllegalArgumentException("Discount start date must be before end date");
-           }
-           if (dto.getDiscountEndDate().isBefore(LocalDateTime.now())) {
-                throw new IllegalArgumentException("End date must be in the future");
-           }
+        // Validate end date alone if only end date is provided
+        if (dto.getDiscountEndDate() != null && dto.getDiscountEndDate().isBefore(LocalDateTime.now())) {
+            throw new InvalidRequestException("End date must be in the future");
+        }
+
+        // Validate start/end relationship only when both are provided
+        if (dto.getDiscountStartDate() != null && dto.getDiscountEndDate() != null) {
+            if (!dto.getDiscountStartDate().isBefore(dto.getDiscountEndDate())) {
+                throw new InvalidRequestException("Discount start date must be before end date");
+            }
         }
 
         product.setDiscountPercent(dto.getDiscountPercent());
@@ -228,7 +232,7 @@ public class ProductService {
         product.setDiscountEndDate(dto.getDiscountEndDate());
 
         return mapToResponse(productRepository.save(product));
-    }
+}
 
     @Transactional
     public ProductResponseDto removeDiscount(Long productId) {
@@ -253,27 +257,24 @@ public class ProductService {
     }
 
     private ProductResponseDto mapToResponse(Product product) {
-        BigDecimal orginalPrice = product.getPrice();
-        BigDecimal discountedPrice = product.getDiscountedPrice();
-        BigDecimal savedAmount = orginalPrice.subtract(discountedPrice);
         return new ProductResponseDto(
-                product.getId(),
-                product.getName(),
-                product.getDescription(),
-                product.getPrice(),
-                product.getImageUrl(),
-                product.getStock(),
-                product.getColor(),
-                product.isAvailable(),
-                product.getCategory(),
-                product.getBrand(),
-                product.getDiscountPercent(),
-                product.getIsDiscounted(),
-                product.isDiscountCurrentlyActive(),
-                discountedPrice,
-                savedAmount,
-                product.getDiscountStartDate(),
-                product.getDiscountEndDate()
+            product.getId(),
+            product.getName(),
+            product.getDescription(),
+            product.getPrice(),
+            product.getImageUrl(),
+            product.getStock(),
+            product.getColor(),
+            product.isAvailable(),
+            product.getCategory(),
+            product.getBrand(),
+            product.getDiscountPercent(),
+            product.getIsDiscounted(),
+            product.isDiscountCurrentlyActive(),
+            product.getDiscountedPrice(),
+            product.getPrice().subtract(product.getDiscountedPrice()),  // savedAmount
+            product.getDiscountStartDate(),
+            product.getDiscountEndDate()
         );
     }
 }
