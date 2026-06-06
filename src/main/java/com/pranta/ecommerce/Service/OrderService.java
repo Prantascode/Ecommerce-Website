@@ -1,5 +1,6 @@
 package com.pranta.ecommerce.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -79,6 +80,7 @@ public class OrderService {
             .convertCartItemToOrderItem(cart.getItems(), savedOrder);
 
         cart.getItems().clear();
+        cart.setGrandTotal(BigDecimal.ZERO);
         cartRepository.save(cart);
 
         return mapToResponse(savedOrder, orderItemDtos);
