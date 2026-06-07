@@ -1,9 +1,8 @@
 package com.pranta.ecommerce.Dto;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.pranta.ecommerce.Entity.Brand;
 import com.pranta.ecommerce.Entity.Category;
 
@@ -19,22 +18,14 @@ public class ProductResponseDto {
     private String name;
     private String description;
     private BigDecimal price;
+    private BigDecimal discountedPrice; 
     private String imageUrl;
     private int stock;
     private String color;
     private boolean isAvailable;
     private Category category;
     private Brand brand;
-
-    private BigDecimal discountPercent;
-    private Boolean isDiscounted;
-    private Boolean isDiscountActive;    // reflects real-time status
-    private BigDecimal discountedPrice;
-    private BigDecimal savedAmount;
-
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime discountStartDate;
-
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime discountEndDate;
+    private List<DiscountResponseDto> discounts;  
+    private DiscountResponseDto activeDiscount;   
+    private boolean hasActiveDiscount;            
 }
