@@ -1,8 +1,7 @@
 package com.pranta.ecommerce.Entity;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDateTime;
+import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -42,6 +42,8 @@ public class Product {
     @Column(nullable = false,precision = 10, scale = 2)
     private BigDecimal price;
 
+    //private BigDecimal discountedPrice;
+
     @NotBlank(message = "Image url is Required")
     @Column(nullable = false)
     private String imageUrl;
@@ -64,41 +66,6 @@ public class Product {
     @JoinColumn(name = "Brand_id",nullable = false)
     private Brand brand;
 
-    @Column(nullable = false, precision = 5, scale = 2)
-    private BigDecimal discountPercent = BigDecimal.ZERO;
-
-    @Column(nullable = false)
-    private Boolean isDiscounted = false;
-
-    private LocalDateTime discountStartDate;
-    private LocalDateTime discountEndDate;
-
-    public BigDecimal getDiscountedPrice() {
-        if (isDiscountCurrentlyActive()) {
-            BigDecimal savings = price.multiply(discountPercent.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP));
-            return price.subtract(savings).setScale(2, RoundingMode.HALF_UP);
-        }
-        return price;
-    }
-
-    public boolean isDiscountCurrentlyActive() {
-        if(!Boolean.TRUE.equals(isDiscounted) || discountPercent == null || discountPercent.compareTo(BigDecimal.ZERO) <= 0) {
-            return false;
-        }
-        LocalDateTime now = LocalDateTime.now();
-
-        if(discountStartDate == null && discountEndDate == null) {
-            return true; // Always active if no dates are set
-        }
-
-        if(discountEndDate == null) {
-            return !now.isBefore(discountStartDate);
-        }
-
-        if(discountStartDate == null) {
-            return now.isBefore(discountEndDate);
-        }
-
-        return !now.isBefore(discountStartDate) && now.isBefore(discountEndDate);
-    }
+    @OneToMany(mappedBy = "product")
+    private List<Discount> discounts;
 }
