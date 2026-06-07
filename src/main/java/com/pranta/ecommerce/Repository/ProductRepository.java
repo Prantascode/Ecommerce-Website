@@ -1,6 +1,5 @@
 package com.pranta.ecommerce.Repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,8 +26,4 @@ public interface ProductRepository extends JpaRepository<Product,Long>{
 
     List<Product> findByPriceBetween(double minPrice, double maxPrice);
 
-    List<Product> findByIsDiscountedFalseAndDiscountStartDateBeforeAndDiscountEndDateAfter(
-    LocalDateTime start, LocalDateTime end);
-
-    List<Product> findByIsDiscountedTrueAndDiscountEndDateBefore(LocalDateTime endDate);
 }
