@@ -36,6 +36,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
     private final OrderItemService orderItemService;
+    private final CartService cartService;
 
     @Transactional
     public OrderResponseDto createOrder(String email){
@@ -53,9 +54,8 @@ public class OrderService {
         Cart cart = cartRepository.findByCustomerId(customer.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Cart not found with this Id"));
 
-        if (cart.getItems().isEmpty()) {
-            throw new InvalidRequestException("Cart is empty");
-        }
+        cartService.validateAndRefreshCartForOrder(cart);
+
         
         Order order = new Order();
         order.setCustomer(cart.getCustomer());

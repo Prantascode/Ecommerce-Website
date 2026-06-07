@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -15,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.pranta.ecommerce.Dto.ProductDiscountRequestDto;
 import com.pranta.ecommerce.Dto.ProductRequestDto;
 import com.pranta.ecommerce.Dto.ProductResponseDto;
 import com.pranta.ecommerce.Dto.ProductStockResponseDto;
@@ -33,11 +33,11 @@ public class ProductController {
 
     private final ProductService productService;
 
+
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping()
+    @PostMapping
     public ResponseEntity<ProductResponseDto> createProduct(
             @Valid @RequestBody ProductRequestDto dto) {
-
         return new ResponseEntity<>(
                 productService.createProduct(dto),
                 HttpStatus.CREATED
@@ -55,53 +55,76 @@ public class ProductController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ProductResponseDto> getProductByName(@RequestParam String name){
+    public ResponseEntity<ProductResponseDto> getProductByName(@RequestParam String name) {
         return ResponseEntity.ok(productService.getProductByName(name));
     }
 
     @GetMapping("/price/search")
     public ResponseEntity<List<ProductResponseDto>> getProductByPriceRange(
-        @RequestParam double minPrice,
-        @RequestParam double maxPrice
-    ){
+            @RequestParam double minPrice,
+            @RequestParam double maxPrice) {
         return ResponseEntity.ok(productService.getProductByPriceRange(minPrice, maxPrice));
     }
 
     @GetMapping("/category/search")
-    public ResponseEntity<List<ProductResponseDto>> getProductByCategory(@RequestParam Category category){
+    public ResponseEntity<List<ProductResponseDto>> getProductByCategory(
+            @RequestParam Category category) {
         return ResponseEntity.ok(productService.getProductByCategory(category));
     }
 
     @GetMapping("/brand/search")
-    public ResponseEntity<List<ProductResponseDto>> getProductByBrand(@RequestParam Brand brand){
+    public ResponseEntity<List<ProductResponseDto>> getProductByBrand(
+            @RequestParam Brand brand) {
         return ResponseEntity.ok(productService.getProductByBrand(brand));
     }
 
     @GetMapping("/color/search")
-    public ResponseEntity<List<ProductResponseDto>> getProductByColor(@RequestParam String color){
+    public ResponseEntity<List<ProductResponseDto>> getProductByColor(
+            @RequestParam String color) {
         return ResponseEntity.ok(productService.getProductsByColor(color));
     }
 
+    @GetMapping("/discounted")
+    public ResponseEntity<List<ProductResponseDto>> getDiscountedProducts() {
+        List<ProductResponseDto> products = productService.getDiscountedProducts();
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/available")
+    public ResponseEntity<List<ProductResponseDto>> getAvailableProducts(
+            @RequestParam(required = false, defaultValue = "false") boolean onSale) {
+        
+        List<ProductResponseDto> products = productService.getAllProducts()
+                .stream()
+                .filter(ProductResponseDto::isAvailable)
+                .filter(product -> !onSale || product.isHasActiveDiscount())
+                .toList();
+        
+        return ResponseEntity.ok(products);
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/stock_out")
-    public ResponseEntity<?> getOutOfStockProduct(){
+    @GetMapping("/stock-out")
+    public ResponseEntity<?> getOutOfStockProduct() {
         List<ProductResponseDto> products = productService.getOutOfStockProducts();
 
         if (products.isEmpty()) {
-            return ResponseEntity.ok("No out of stock's products");
+            return ResponseEntity.ok("No out of stock products");
         }
         return ResponseEntity.ok(products);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{productId}/stock")
-    public ResponseEntity<ProductStockResponseDto> getStockByProductId(@PathVariable Long productId){
+    public ResponseEntity<ProductStockResponseDto> getStockByProductId(
+            @PathVariable Long productId) {
         return ResponseEntity.ok(productService.getStockByProduct(productId));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("low-stock")
-    public ResponseEntity<List<ProductResponseDto>> getStockLimitResponse(@RequestParam(defaultValue = "5") int threshold){
+    @GetMapping("/low-stock")
+    public ResponseEntity<List<ProductResponseDto>> getStockLimitResponse(
+            @RequestParam(defaultValue = "5") int threshold) {
         return ResponseEntity.ok(productService.getStockLimitResponse(threshold));
     }
 
@@ -110,15 +133,14 @@ public class ProductController {
     public ResponseEntity<ProductResponseDto> updateProduct(
             @PathVariable Long id,
             @Valid @RequestBody ProductRequestDto dto) {
-
         return ResponseEntity.ok(productService.updateProduct(id, dto));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/stock/{productId}")
+    @PatchMapping("/stock/{productId}")
     public ResponseEntity<ProductResponseDto> updateStockQuantity(
-        @PathVariable Long productId,int quantity
-    ){
+            @PathVariable Long productId,
+            @RequestParam int quantity) {
         return ResponseEntity.ok(productService.updateStock(quantity, productId));
     }
 
@@ -128,31 +150,4 @@ public class ProductController {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/discount/{productId}")
-    public ResponseEntity<ProductResponseDto> applyDiscount(
-        @PathVariable Long productId,
-       @Valid @RequestBody ProductDiscountRequestDto discountRequest
-    ){
-        return ResponseEntity.ok(productService.applyDiscount(productId, discountRequest));
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/discount/remove/{productId}")
-    public ResponseEntity<ProductResponseDto> removeDiscount(
-        @PathVariable Long productId
-    ){
-        return ResponseEntity.ok(productService.removeDiscount(productId));
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/discount/toggle/{productId}")
-    public ResponseEntity<ProductResponseDto> toggleDiscount(
-        @PathVariable Long productId,
-        @RequestParam boolean isDiscounted
-    ){
-        return ResponseEntity.ok(productService.toggleDiscount(productId, isDiscounted));
-    }
 }
-
