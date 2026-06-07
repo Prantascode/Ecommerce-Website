@@ -79,6 +79,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/users/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
 
+                .requestMatchers("/api/discounts/**").hasRole("ADMIN")
+
+                 // Allow payment callbacks without authentication
+
                 .requestMatchers(
                                 "/api/payment/success",
                                 "/api/payment/fail",
