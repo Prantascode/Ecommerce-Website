@@ -20,6 +20,7 @@ import com.pranta.ecommerce.Repository.OrderRepository;
 import com.pranta.ecommerce.Repository.PaymentRepository;
 import com.pranta.ecommerce.Service.PaymentService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,10 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @RequestMapping("/api/payments")
 @Slf4j
+@Tag(
+    name = "Payment",
+    description = "Payment Management API's"
+)
 public class PaymentController {
     
     private final PaymentService paymentService;

@@ -15,12 +15,17 @@ import com.pranta.ecommerce.Dto.BrandRequestDto;
 import com.pranta.ecommerce.Dto.BrandResponseDto;
 import com.pranta.ecommerce.Service.BrandService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/brand")
+@Tag(
+    name = "Brand",
+    description = "Brand Management API's"
+)
 public class BrandController {
     
     private final BrandService brandService;

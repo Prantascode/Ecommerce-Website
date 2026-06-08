@@ -21,6 +21,7 @@ import com.pranta.ecommerce.Dto.OrderUpdateRequestDto;
 import com.pranta.ecommerce.Entity.Order.OrderStatus;
 import com.pranta.ecommerce.Service.OrderService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -28,6 +29,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/orders")
+@Tag(
+    name = "Orders",
+    description = "Orders Management API's"
+)
 public class OrderController {
 
     private final OrderService orderService;

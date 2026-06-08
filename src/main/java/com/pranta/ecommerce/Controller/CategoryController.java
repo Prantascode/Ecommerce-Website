@@ -15,12 +15,17 @@ import com.pranta.ecommerce.Dto.CategoryRequestDto;
 import com.pranta.ecommerce.Dto.CategoryResponeDto;
 import com.pranta.ecommerce.Service.CategoryService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/category")
+@Tag(
+    name = "Categories",
+    description = "categories Management API's"
+)
 public class CategoryController {
     
     private final CategoryService categoryService;

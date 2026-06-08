@@ -23,12 +23,17 @@ import com.pranta.ecommerce.Entity.Brand;
 import com.pranta.ecommerce.Entity.Category;
 import com.pranta.ecommerce.Service.ProductService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/products")
+@Tag(
+    name = "Products",
+    description = "Products Management API's"
+)
 public class ProductController {
 
     private final ProductService productService;

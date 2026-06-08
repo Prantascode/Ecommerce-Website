@@ -9,12 +9,17 @@ import com.pranta.ecommerce.Dto.CustomerRequestDto;
 import com.pranta.ecommerce.Dto.CustomerResponseDto;
 import com.pranta.ecommerce.Service.CustomerService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/customers")
+@Tag(
+    name = "Customers",
+    description = "Customers Management API's"
+)
 public class CustomerController {
 
     private final CustomerService customerService;

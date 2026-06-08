@@ -13,12 +13,17 @@ import com.pranta.ecommerce.Dto.RegistationDto;
 import com.pranta.ecommerce.Dto.Register_LoginResponseDto;
 import com.pranta.ecommerce.Service.AuthService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/auth")
+@Tag(
+    name = "Authentication",
+    description = "User Authentication API's"
+)
 public class AuthController {
 
     private final AuthService authService;

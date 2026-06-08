@@ -5,6 +5,8 @@ import com.pranta.ecommerce.Dto.DiscountResponseDto;
 import com.pranta.ecommerce.Exceptions.InvalidRequestException;
 import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
 import com.pranta.ecommerce.Service.DiscountService;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,10 @@ import java.util.Map;
 @RequestMapping("/api/discounts")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*") 
+@Tag(
+    name = "Discount",
+    description = "Discount Management API's"
+)
 public class DiscountController {
 
     private final DiscountService discountService;

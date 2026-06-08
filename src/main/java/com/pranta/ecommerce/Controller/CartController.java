@@ -20,12 +20,17 @@ import com.pranta.ecommerce.Dto.CartItemResponseDto;
 import com.pranta.ecommerce.Dto.CartResponseDto;
 import com.pranta.ecommerce.Service.CartService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/cart")
 @RequiredArgsConstructor
+@Tag(
+    name = "Cart",
+    description = "Cart Management API's"
+)
 public class CartController {
     
     private final CartService cartService;
