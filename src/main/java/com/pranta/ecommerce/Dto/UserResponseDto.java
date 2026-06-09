@@ -1,24 +1,6 @@
 package com.pranta.ecommerce.Dto;
 
-import com.pranta.ecommerce.Entity.User.Role;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserResponseDto {
-    private Long id;
-    private Long customerId;
-    private String name;
-    private String email; 
-    private Role role;
-    private boolean active;
-    private String address;
-    private String phone;
-    private String city;
-    private String country;
-    private String postCode;
+public interface UserResponseDto {
+    
 }
