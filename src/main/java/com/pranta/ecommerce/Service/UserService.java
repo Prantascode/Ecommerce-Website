@@ -1,14 +1,17 @@
 package com.pranta.ecommerce.Service;
 
-
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import com.pranta.ecommerce.Dto.AdminResponseDto;
+import com.pranta.ecommerce.Dto.CostomCustomerResponseDto;
 import com.pranta.ecommerce.Dto.UpdateEmailDto;
 import com.pranta.ecommerce.Dto.UserResponseDto;
 import com.pranta.ecommerce.Entity.Customer;
@@ -20,30 +23,31 @@ import com.pranta.ecommerce.Repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
-
     private final CustomerRepository customerRepository;
-
     private final PasswordEncoder passwordEncoder;
      
     public List<UserResponseDto> getAllUsers() {
-        
         List<User> users = userRepository.findAll();
 
         if (users.isEmpty()) {
             return Collections.emptyList();
         }
-        return users
-                .stream()
+
+        return users.stream()
                 .map(user -> {
-                    Customer customer = customerRepository.findByUser(user)
-                                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
-                    return mapResponseDto(user, customer);
+                    Customer customer = null;
+                    if (user.getRole() != User.Role.ADMIN) {
+                        customer = customerRepository.findByUser(user).orElse(null);
+                    }
+                    return mapToUserResponseDto(user, customer);
                 })
                 .collect(Collectors.toList());
     }
@@ -51,21 +55,29 @@ public class UserService {
     public UserResponseDto getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with this id"));
-
-        Customer customer = customerRepository.findByUser(user)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
-
-        return mapResponseDto(user,customer);
+        
+        // Only fetch customer for non-admin users
+        Customer customer = null;
+        if (user.getRole() != User.Role.ADMIN) {
+            customer = customerRepository.findByUser(user)
+                    .orElseThrow(() -> new ResourceNotFoundException("Customer not found for this user"));
+        }
+        
+        return mapToUserResponseDto(user, customer);
     }
 
     public UserResponseDto getUserByEmail(String email){
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with this Email"));
 
-        Customer customer = customerRepository.findByUser(user)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+        // Only fetch customer for non-admin users
+        Customer customer = null;
+        if (user.getRole() != User.Role.ADMIN) {
+            customer = customerRepository.findByUser(user)
+                    .orElseThrow(() -> new ResourceNotFoundException("Customer not found for this user"));
+        }
 
-        return mapResponseDto(user,customer);
+        return mapToUserResponseDto(user, customer);
     }
 
     public List<UserResponseDto> getUserByRole(User.Role role){
@@ -74,27 +86,35 @@ public class UserService {
         if (users.isEmpty()) {
             return Collections.emptyList();
         }
+        
         return users.stream()
                 .map(user -> {
-                    Customer customer = customerRepository.findByUser(user)
-                                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
-                    return mapResponseDto(user, customer);
+                    // If role is ADMIN, don't fetch customer
+                    Customer customer = null;
+                    if (role != User.Role.ADMIN) {
+                        customer = customerRepository.findByUser(user)
+                                .orElseThrow(() -> new ResourceNotFoundException("Customer not found for user: " + user.getEmail()));
+                    }
+                    return mapToUserResponseDto(user, customer);
                 })
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public UserResponseDto myProfile(String email){
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found by this mail"));
 
-        Customer customer = customerRepository.findByUser(user)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
-
-        return mapResponseDto(user,customer);
+        // Only fetch customer for non-admin users (optional, don't throw exception)
+        Customer customer = null;
+        if (user.getRole() != User.Role.ADMIN) {
+            customer = customerRepository.findByUser(user).orElse(null);
+        }
+        
+        return mapToUserResponseDto(user, customer);
     }
 
     @Transactional
-    public String UpdateMyEmail(String currentEmail, UpdateEmailDto dto) {
+    public String updateMyEmail(String currentEmail, UpdateEmailDto dto) {
         User user = userRepository.findByEmail(currentEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found by this mail"));
 
@@ -111,7 +131,7 @@ public class UserService {
     }
 
     @Transactional
-    public String UpdatePassword(String email, String newPassword, String currentPassword) {
+    public String updatePassword(String email, String newPassword, String currentPassword) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found by this mail"));
 
@@ -124,7 +144,6 @@ public class UserService {
 
        return "Password updated successfully";
     }
-
 
     public void deactivateUser(Long userId){
         User user = userRepository.findById(userId)
@@ -156,30 +175,49 @@ public class UserService {
         if (users.isEmpty()) {
             return Collections.emptyList();
         }
+        
         return users.stream()
                 .map(user -> {
-                    Customer customer = customerRepository.findByUser(user)
-                                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
-                    return mapResponseDto(user, customer);
+                    // Only fetch customer for non-admin users
+                    Customer customer = null;
+                    if (user.getRole() != User.Role.ADMIN) {
+                        Optional<Customer> optionalCustomer = customerRepository.findByUser(user);
+                        customer = optionalCustomer.orElse(null);
+                    }
+                    return mapToUserResponseDto(user, customer);
                 })
-                .toList();
-               
+                .collect(Collectors.toList());         
     }
-    private UserResponseDto mapResponseDto(User user,Customer customer){
-        return new UserResponseDto(
-                user.getId(),
-                customer.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getRole(),
-                user.isActive(),
-                customer.getAddress(),
-                customer.getPhone(),
-                customer.getCity(),
-                customer.getCountry(),
-                customer.getPostCode()
-        );
+    
+    // Single mapping method - always returns UserResponseDto
+    private UserResponseDto mapToUserResponseDto(User user, Customer customer){
+        if (user.getRole() == User.Role.ADMIN) {
+            AdminResponseDto dto = new AdminResponseDto();
 
+            dto.setId(user.getId());
+            dto.setEmail(user.getEmail());
+            dto.setName(user.getName());
+            dto.setRole(user.getRole());
+            dto.setActive(user.isActive());
+
+            return dto;
+        }
+        CostomCustomerResponseDto dto = new CostomCustomerResponseDto();
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setEmail(user.getEmail());
+        dto.setRole(user.getRole());
+        dto.setActive(user.isActive());
+        
+        // Only set customer details if customer exists AND user is not admin
+        if (customer != null && user.getRole() != User.Role.ADMIN) {
+            dto.setCustomerId(customer.getId());
+            dto.setAddress(customer.getAddress());
+            dto.setPhone(customer.getPhone());
+            dto.setCity(customer.getCity());
+            dto.setCountry(customer.getCountry());
+            dto.setPostCode(customer.getPostCode());
+        }
+        return dto;
     }
 }
-
