@@ -95,7 +95,7 @@ public class UserController {
     public ResponseEntity<String> updateEmail(Authentication authentication,
         @RequestBody UpdateEmailDto dto){
             String email = authentication.getName();
-            return ResponseEntity.ok(userService.UpdateMyEmail(email, dto));
+            return ResponseEntity.ok(userService.updateMyEmail(email, dto));
     }
     @Operation(
         summary = "Update Password",
@@ -106,7 +106,7 @@ public class UserController {
     public ResponseEntity<String> updatePassword(Authentication authentication,
         @RequestBody PasswordUpdateDto dto){
             String email = authentication.getName();
-            return ResponseEntity.ok(userService.UpdatePassword(email, dto.getNewPassword(), dto.getOldPassword()));
+            return ResponseEntity.ok(userService.updatePassword(email, dto.getNewPassword(), dto.getOldPassword()));
     }
 
     @Operation(
