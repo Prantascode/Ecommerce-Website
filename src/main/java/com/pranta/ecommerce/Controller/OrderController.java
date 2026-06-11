@@ -21,6 +21,7 @@ import com.pranta.ecommerce.Dto.OrderUpdateRequestDto;
 import com.pranta.ecommerce.Entity.Order.OrderStatus;
 import com.pranta.ecommerce.Service.OrderService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,10 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    @Operation(
+        summary = "Order Placement",
+        description = "User can place order"
+    )
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/create")
     public ResponseEntity<OrderResponseDto> createOrder(Authentication authentication){
@@ -46,6 +51,10 @@ public class OrderController {
         return new ResponseEntity<>(response,HttpStatus.CREATED);
     }
 
+    @Operation(
+        summary = "Get own Order",
+        description = "User can get own order"
+    )
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/myOrder")
     public ResponseEntity<List<OrderResponseDto>> myOrder(Authentication authentication){
@@ -54,6 +63,10 @@ public class OrderController {
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
+    @Operation(
+        summary = "Get all Order",
+        description = "Admin can get all orders"
+    )
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all")
     public ResponseEntity<List<OrderResponseDto>> getAllOrders(){
@@ -61,6 +74,10 @@ public class OrderController {
         return new ResponseEntity<>(response,HttpStatus.OK);
     } 
 
+    @Operation(
+        summary = "Get Order by id",
+        description = "User can get order by id"
+    )    
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/{orderId}")
     public ResponseEntity<OrderResponseDto> getMyOrderById(
@@ -71,12 +88,20 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getMyOrderById(orderId, email));
     }
 
+    @Operation(
+        summary = "Update Order Status",
+        description = "Admin can update order status"
+    )
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{orderId}/status")
     public ResponseEntity<OrderResponseDto> updateOrderStatus(@PathVariable Long orderId,@Valid @RequestBody OrderUpdateRequestDto request){
         return ResponseEntity.ok(orderService.updateOrderStatus(orderId,request.getStatus()));
     }
 
+    @Operation(
+        summary = "Cancel Order",
+        description = "User can cancel orders"
+    )
     @PreAuthorize("hasRole('USER')")
     @PutMapping("/{orderId}/cancel")
     public ResponseEntity<OrderResponseDto> cancelOrder(@PathVariable Long orderId,Authentication authentication){
@@ -84,6 +109,10 @@ public class OrderController {
         return ResponseEntity.ok(orderService.cancelOrder(orderId, email));
     }
 
+    @Operation(
+        summary = "Filter Order by Status",
+        description = "Admin can filter orders by status"
+    )
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/filter/{status}")
     public ResponseEntity<List<OrderResponseDto>> filterByStatus(@PathVariable OrderStatus status){
