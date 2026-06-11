@@ -23,6 +23,7 @@ import com.pranta.ecommerce.Entity.Brand;
 import com.pranta.ecommerce.Entity.Category;
 import com.pranta.ecommerce.Service.ProductService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +39,10 @@ public class ProductController {
 
     private final ProductService productService;
 
-
+    @Operation(
+        summary = "Create Product",
+        description = "Creates a new product"
+    )
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ProductResponseDto> createProduct(
@@ -49,21 +53,37 @@ public class ProductController {
         );
     }
 
+    @Operation(
+        summary = "Get all Product",
+        description = "Anyone can get all product"
+    )
     @GetMapping
     public ResponseEntity<List<ProductResponseDto>> getAllProducts() {
         return ResponseEntity.ok(productService.getAllProducts());
     }
 
+    @Operation(
+        summary = "Get Product by id",
+        description = "Anyone can get product by id"
+    )
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponseDto> getProductById(@PathVariable Long id) {
         return ResponseEntity.ok(productService.getProductById(id));
     }
 
+     @Operation(
+        summary = "Get Product by name",
+        description = "Anyone can get product by name"
+    )
     @GetMapping("/search")
     public ResponseEntity<ProductResponseDto> getProductByName(@RequestParam String name) {
         return ResponseEntity.ok(productService.getProductByName(name));
     }
 
+     @Operation(
+        summary = "Get Product by product price range",
+        description = "Anyone can get product by price range"
+    )
     @GetMapping("/price/search")
     public ResponseEntity<List<ProductResponseDto>> getProductByPriceRange(
             @RequestParam double minPrice,
@@ -71,30 +91,50 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductByPriceRange(minPrice, maxPrice));
     }
 
+     @Operation(
+        summary = "Get Product by category search",
+        description = "Anyone can get product by category search"
+    )
     @GetMapping("/category/search")
     public ResponseEntity<List<ProductResponseDto>> getProductByCategory(
             @RequestParam Category category) {
         return ResponseEntity.ok(productService.getProductByCategory(category));
     }
 
+     @Operation(
+        summary = "Get Product by barnd",
+        description = "Anyone can get product by brand"
+    )
     @GetMapping("/brand/search")
     public ResponseEntity<List<ProductResponseDto>> getProductByBrand(
             @RequestParam Brand brand) {
         return ResponseEntity.ok(productService.getProductByBrand(brand));
     }
 
+     @Operation(
+        summary = "Get Product by color",
+        description = "Anyone can get product by color"
+    )
     @GetMapping("/color/search")
     public ResponseEntity<List<ProductResponseDto>> getProductByColor(
             @RequestParam String color) {
         return ResponseEntity.ok(productService.getProductsByColor(color));
     }
 
+     @Operation(
+        summary = "Get discounted Product",
+        description = "Anyone can get discounted product"
+    )
     @GetMapping("/discounted")
     public ResponseEntity<List<ProductResponseDto>> getDiscountedProducts() {
         List<ProductResponseDto> products = productService.getDiscountedProducts();
         return ResponseEntity.ok(products);
     }
 
+     @Operation(
+        summary = "Get available Product",
+        description = "Anyone can get available product"
+    )
     @GetMapping("/available")
     public ResponseEntity<List<ProductResponseDto>> getAvailableProducts(
             @RequestParam(required = false, defaultValue = "false") boolean onSale) {
@@ -108,6 +148,10 @@ public class ProductController {
         return ResponseEntity.ok(products);
     }
 
+     @Operation(
+        summary = "Get stock out Product",
+        description = "Admin can get stock out product"
+    )
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/stock-out")
     public ResponseEntity<?> getOutOfStockProduct() {
@@ -119,6 +163,10 @@ public class ProductController {
         return ResponseEntity.ok(products);
     }
 
+     @Operation(
+        summary = "Get Product stock by id",
+        description = "Admin can get product stock by id"
+    )
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{productId}/stock")
     public ResponseEntity<ProductStockResponseDto> getStockByProductId(
@@ -126,6 +174,10 @@ public class ProductController {
         return ResponseEntity.ok(productService.getStockByProduct(productId));
     }
 
+    @Operation(
+        summary = "Get low stock Product",
+        description = "Admin can get low stock product"
+    )
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/low-stock")
     public ResponseEntity<List<ProductResponseDto>> getStockLimitResponse(
@@ -133,6 +185,10 @@ public class ProductController {
         return ResponseEntity.ok(productService.getStockLimitResponse(threshold));
     }
 
+    @Operation(
+        summary = "Update Product",
+        description = "Admin can update product"
+    )
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponseDto> updateProduct(
@@ -141,6 +197,10 @@ public class ProductController {
         return ResponseEntity.ok(productService.updateProduct(id, dto));
     }
 
+    @Operation(
+        summary = "Update Product Stock",
+        description = "Admin can update product Stock"
+    )
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/stock/{productId}")
     public ResponseEntity<ProductResponseDto> updateStockQuantity(
@@ -149,6 +209,10 @@ public class ProductController {
         return ResponseEntity.ok(productService.updateStock(quantity, productId));
     }
 
+    @Operation(
+        summary = "Delete Product",
+        description = "Admin can delete product Stock"
+    )
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
