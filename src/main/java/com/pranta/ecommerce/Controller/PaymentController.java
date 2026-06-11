@@ -20,6 +20,7 @@ import com.pranta.ecommerce.Repository.OrderRepository;
 import com.pranta.ecommerce.Repository.PaymentRepository;
 import com.pranta.ecommerce.Service.PaymentService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,10 @@ public class PaymentController {
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
 
+    @Operation(
+        summary = "Initiate Payment",
+        description = "User can Initiate order payment"
+    )
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/initiate/{orderId}")
     public ResponseEntity<PaymentResponseDto> initiatePayment(@PathVariable Long orderId, Authentication authentication) {
@@ -47,6 +52,10 @@ public class PaymentController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(
+        summary = "Payment Success check",
+        description = "Payment success response"
+    )
     @PostMapping("/success")
     @Transactional
     public ResponseEntity<Map<String, Object>> paymentSuccess(
@@ -95,9 +104,12 @@ public class PaymentController {
         ));
     }
 
-    // ----------------------------------------------------------------
     // Fail — SSLCommerz POSTs here on payment failure
-    // ----------------------------------------------------------------
+
+    @Operation(
+        summary = "Payment failed",
+        description = "Payment fail response"
+    )
     @PostMapping("/fail")
     @Transactional
     public ResponseEntity<Map<String, Object>> paymentFail(
@@ -120,9 +132,12 @@ public class PaymentController {
         ));
     }
 
-    // ----------------------------------------------------------------
     // Cancel — SSLCommerz POSTs here if user cancels
-    // ----------------------------------------------------------------
+
+    @Operation(
+        summary = "Payment Cancel",
+        description = "Payment cancel response"
+    )
     @PostMapping("/cancel")
     @Transactional
     public ResponseEntity<Map<String, Object>> paymentCancel(
