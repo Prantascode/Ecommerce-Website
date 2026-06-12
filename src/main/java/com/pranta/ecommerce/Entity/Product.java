@@ -68,4 +68,9 @@ public class Product {
 
     @OneToMany(mappedBy = "product")
     private List<Discount> discounts;
+
+    @Column(nullable = false)
+    private Double averageRating = 0.0;
+
+    private int totalReviews;
 }
