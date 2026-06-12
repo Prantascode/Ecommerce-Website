@@ -15,6 +15,7 @@ import com.pranta.ecommerce.Dto.BrandRequestDto;
 import com.pranta.ecommerce.Dto.BrandResponseDto;
 import com.pranta.ecommerce.Service.BrandService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,10 @@ public class BrandController {
     
     private final BrandService brandService;
 
+    @Operation(
+        summary = "Create Brand",
+        description = "Admin can create a brand for product"
+    )
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<BrandResponseDto> createBrands(@Valid @RequestBody BrandRequestDto dto){
@@ -39,6 +44,10 @@ public class BrandController {
         );
     }
 
+    @Operation(
+        summary = "Get Brand",
+        description = "Anyone can get brand"
+    )
     //@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @GetMapping
     public ResponseEntity<List<BrandResponseDto>> getBrands(){

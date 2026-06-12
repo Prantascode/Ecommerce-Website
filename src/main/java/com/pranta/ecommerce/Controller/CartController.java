@@ -20,6 +20,7 @@ import com.pranta.ecommerce.Dto.CartItemResponseDto;
 import com.pranta.ecommerce.Dto.CartResponseDto;
 import com.pranta.ecommerce.Service.CartService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,10 @@ public class CartController {
     
     private final CartService cartService;
 
+    @Operation(
+        summary = "Add to Cart",
+        description = "User can Add to Cart products"
+    )
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/add")
     public ResponseEntity<CartItemResponseDto> addToCart(
@@ -46,6 +51,10 @@ public class CartController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+    @Operation(
+        summary = "Get Cart",
+        description = "User can get their Carts"
+    )
     @PreAuthorize("hasRole('USER')")
     @GetMapping
     public ResponseEntity<CartResponseDto> getMyCart(Authentication authentication) {
@@ -53,6 +62,10 @@ public class CartController {
         return ResponseEntity.ok(cartService.getCartByUserEmail(email));
     }
 
+    @Operation(
+        summary = "Update Cart Items",
+        description = "User can update Cart items"
+    )
     @PreAuthorize("hasRole('USER')")
     @PutMapping("/edit/{productId}")
     public ResponseEntity<CartItemResponseDto> updateCartItemQuantity(
@@ -68,6 +81,10 @@ public class CartController {
         );
     }
 
+    @Operation(
+        summary = "Clear the Cart",
+        description = "User can clear their Cart"
+    )
     @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/clear")
     public ResponseEntity<String> clearCart(Authentication authentication) {

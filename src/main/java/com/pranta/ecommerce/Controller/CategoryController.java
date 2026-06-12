@@ -15,6 +15,7 @@ import com.pranta.ecommerce.Dto.CategoryRequestDto;
 import com.pranta.ecommerce.Dto.CategoryResponeDto;
 import com.pranta.ecommerce.Service.CategoryService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,10 @@ public class CategoryController {
     
     private final CategoryService categoryService;
 
+    @Operation(
+        summary = "Create Product Category",
+        description = "Admin can create product category"
+    )
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping()
     public ResponseEntity<CategoryResponeDto> createCategory(@Valid @RequestBody CategoryRequestDto dto){
@@ -38,6 +43,10 @@ public class CategoryController {
             HttpStatus.CREATED);
     }
 
+    @Operation(
+        summary = "Get Product Categories",
+        description = "Anyone can get product categorys"
+    )
     //@PreAuthorize("hasRole('ADMIN')")
     @GetMapping()
     public ResponseEntity<List<CategoryResponeDto>> getCategorys(){

@@ -13,6 +13,7 @@ import com.pranta.ecommerce.Dto.RegistationDto;
 import com.pranta.ecommerce.Dto.Register_LoginResponseDto;
 import com.pranta.ecommerce.Service.AuthService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
@@ -28,11 +29,19 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @Operation(
+        summary = "User Registration",
+        description = "User register themself as a USER"
+    )
     @PostMapping("/register")
     public ResponseEntity<Register_LoginResponseDto> register(@RequestBody RegistationDto dto){
         return new ResponseEntity<>(authService.register(dto),HttpStatus.CREATED);
     }
 
+    @Operation(
+        summary = "User Login",
+        description = "User can login via email and password"
+    )
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDto> login(@RequestBody LoginRequest requestDto){
         return new ResponseEntity<>(authService.login(requestDto),HttpStatus.ACCEPTED);

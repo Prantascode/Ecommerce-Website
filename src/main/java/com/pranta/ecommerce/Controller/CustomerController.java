@@ -9,6 +9,7 @@ import com.pranta.ecommerce.Dto.CustomerRequestDto;
 import com.pranta.ecommerce.Dto.CustomerResponseDto;
 import com.pranta.ecommerce.Service.CustomerService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,10 @@ public class CustomerController {
 
     private final CustomerService customerService;
 
+    @Operation(
+        summary = "Get My Profile",
+        description = "User can get user's own profile"
+    )
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/me")
     public ResponseEntity<CustomerResponseDto> getMyProfileDetails(Authentication authentication) {
@@ -35,6 +40,10 @@ public class CustomerController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(
+        summary = "Update My Profile",
+        description = "User can update user's own profile"
+    )
     @PreAuthorize("hasRole('USER')")
     @PutMapping("/me")
     public ResponseEntity<CustomerResponseDto> updateMyProfileDetails(

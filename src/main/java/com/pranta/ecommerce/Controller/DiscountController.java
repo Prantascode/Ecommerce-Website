@@ -6,6 +6,7 @@ import com.pranta.ecommerce.Exceptions.InvalidRequestException;
 import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
 import com.pranta.ecommerce.Service.DiscountService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,10 @@ public class DiscountController {
     private final DiscountService discountService;
 
 
+    @Operation(
+        summary = "Create Discount",
+        description = "Admin can set a discount for product"
+    )
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DiscountResponseDto> createDiscount(
@@ -42,6 +47,10 @@ public class DiscountController {
         }
     }
 
+    @Operation(
+        summary = "Update Discount",
+        description = "Admin can update the discount for product"
+    )
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DiscountResponseDto> updateDiscount(
@@ -57,7 +66,10 @@ public class DiscountController {
             throw new InvalidRequestException(e.getMessage());
         }
     }
-
+    @Operation(
+        summary = "Get Discount By id",
+        description = "Admin can get a discount by id"
+    )
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DiscountResponseDto> getDiscountById(@PathVariable Long id) {
@@ -69,12 +81,20 @@ public class DiscountController {
         }
     }
 
+    @Operation(
+        summary = "Get All Discount",
+        description = "Anyone can get discount for product"
+    )
     @GetMapping
     public ResponseEntity<List<DiscountResponseDto>> getAllDiscounts() {
         List<DiscountResponseDto> discounts = discountService.getAllDiscounts();
         return ResponseEntity.ok(discounts);
     }
 
+    @Operation(
+        summary = "Get Discount by product",
+        description = "Anyone can get discount by product"
+    )
     @GetMapping("/product/{productId}")
     public ResponseEntity<List<DiscountResponseDto>> getDiscountsByProduct(
             @PathVariable Long productId) {
@@ -82,6 +102,10 @@ public class DiscountController {
         return ResponseEntity.ok(discounts);
     }
 
+    @Operation(
+        summary = "Delete Discount",
+        description = "Admin can delete a discount for product"
+    )
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> deleteDiscount(@PathVariable Long id) {
@@ -96,6 +120,10 @@ public class DiscountController {
         }
     }
 
+    @Operation(
+        summary = "Toggle Discount",
+        description = "Admin can toggle a discount for product"
+    )
     @PatchMapping("/{id}/toggle")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DiscountResponseDto> toggleDiscountStatus(
@@ -109,6 +137,10 @@ public class DiscountController {
         }
     }
 
+    @Operation(
+        summary = "Activate Discount",
+        description = "Admin can activate a discount for product"
+    )
     @PatchMapping("/{id}/activate")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DiscountResponseDto> activateDiscount(@PathVariable Long id) {
@@ -120,6 +152,10 @@ public class DiscountController {
         }
     }
 
+    @Operation(
+        summary = "Deactivate Discount",
+        description = "Admin can deactivate a discount for product"
+    )
     @PatchMapping("/{id}/deactivate")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DiscountResponseDto> deactivateDiscount(@PathVariable Long id) {
@@ -131,6 +167,10 @@ public class DiscountController {
         }
     }
 
+    @Operation(
+        summary = "Get All Active Discount Product",
+        description = "Admin can get all discount for product"
+    )
     @GetMapping("/product/{productId}/active")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<DiscountResponseDto>> getActiveDiscountsForProduct(
@@ -142,6 +182,10 @@ public class DiscountController {
         return ResponseEntity.ok(activeDiscounts);
     }
 
+    @Operation(
+        summary = "Get All Active Discount",
+        description = "Admin can get all active discount for product"
+    )
     @GetMapping("/active")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<DiscountResponseDto>> getAllActiveDiscounts() {
