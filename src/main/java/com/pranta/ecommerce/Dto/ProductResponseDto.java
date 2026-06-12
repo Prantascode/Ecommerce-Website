@@ -27,5 +27,7 @@ public class ProductResponseDto {
     private Brand brand;
     private List<DiscountResponseDto> discounts;  
     private DiscountResponseDto activeDiscount;   
-    private boolean hasActiveDiscount;            
+    private boolean hasActiveDiscount;   
+    private Double averageRating;
+    private int totalReviews;         
 }
