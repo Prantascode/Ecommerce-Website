@@ -231,6 +231,8 @@ public class ProductService {
         dto.setAvailable(product.isAvailable());
         dto.setCategory(product.getCategory());
         dto.setBrand(product.getBrand());
+        dto.setAverageRating(product.getAverageRating());
+        dto.setTotalReviews(product.getTotalReviews());
         
         // FIXED: Only get active discounts instead of all discounts
         List<Discount> productDiscounts = product.getDiscounts();

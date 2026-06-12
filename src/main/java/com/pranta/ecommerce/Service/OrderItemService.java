@@ -9,7 +9,7 @@ import com.pranta.ecommerce.Entity.CartItem;
 import com.pranta.ecommerce.Entity.Order;
 import com.pranta.ecommerce.Entity.OrderItem;
 
-import com.pranta.ecommerce.Repository.OderItemRepository;
+import com.pranta.ecommerce.Repository.OrderItemRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class OrderItemService {
 
-    private final OderItemRepository orderItemRepository;
+    private final OrderItemRepository orderItemRepository;
 
     @Transactional
     public List<OrderItemResponseDto> convertCartItemToOrderItem(List<CartItem> cartItems, Order order) {
