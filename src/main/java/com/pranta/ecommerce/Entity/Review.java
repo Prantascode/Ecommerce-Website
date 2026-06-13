@@ -28,7 +28,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "Reviews")
 public class Review {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull(message = "Rate is required")
