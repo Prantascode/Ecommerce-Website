@@ -22,6 +22,7 @@ import com.pranta.ecommerce.Exceptions.UnauthorizedAccessException;
 import com.pranta.ecommerce.Repository.CartRepository;
 import com.pranta.ecommerce.Repository.CustomerRepository;
 import com.pranta.ecommerce.Repository.OrderRepository;
+import com.pranta.ecommerce.Repository.ProductRepository;
 import com.pranta.ecommerce.Repository.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -37,6 +38,7 @@ public class OrderService {
     private final CartRepository cartRepository;
     private final OrderItemService orderItemService;
     private final CartService cartService;
+    private final ProductRepository productRepository;
 
     @Transactional
     public OrderResponseDto createOrder(String email){
@@ -54,7 +56,10 @@ public class OrderService {
         Cart cart = cartRepository.findByCustomerId(customer.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Cart not found with this Id"));
 
-        cartService.validateAndRefreshCartForOrder(cart);
+        if (cart.getItems() == null || cart.getItems().isEmpty()) {
+            throw new InvalidRequestException("Cannot create order with empty cart");
+        }
+        cartService.validateCartForOrder(cart);
 
         
         Order order = new Order();
@@ -74,6 +79,7 @@ public class OrderService {
             }
 
             product.setStock(product.getStock() - cartItem.getQuantity());
+            productRepository.save(product);
             
         }
         List<OrderItemResponseDto> orderItemDtos = orderItemService
@@ -86,6 +92,7 @@ public class OrderService {
         return mapToResponse(savedOrder, orderItemDtos);
     }
 
+    @Transactional
     public List<OrderResponseDto> getMyOrder(String email){
 
         User user = userRepository.findByEmail(email)
@@ -100,6 +107,7 @@ public class OrderService {
             .toList();              
     }
 
+    @Transactional
     public List<OrderResponseDto> getAllOrder(){
 
         List<Order> orders = orderRepository.findAll();
@@ -112,7 +120,8 @@ public class OrderService {
                 .toList();
     }
 
-     public OrderResponseDto getMyOrderById(Long orderId, String email) {
+    @Transactional
+    public OrderResponseDto getMyOrderById(Long orderId, String email) {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new ResourceNotFoundException("User not found with this Id"));
         
@@ -180,7 +189,7 @@ public class OrderService {
         return convertToDto(savedOrder);
     }
 
-
+    @Transactional
     public List<OrderResponseDto> filterByStatus(OrderStatus status){
        List<Order> orders = orderRepository.findByStatus(status);
 
@@ -197,6 +206,7 @@ public class OrderService {
         for (OrderItem item : order.getItems()) {
             Product product = item.getProduct();
             product.setStock(product.getStock() + item.getQuantity());
+            productRepository.save(product);
         }
     }
 
