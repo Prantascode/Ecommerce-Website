@@ -42,316 +42,238 @@ public class CartService {
 
     @Transactional
     public CartItemResponseDto addToCart(CartItemRequestDto request, String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with this email"));
-
-        Customer customer = customerRepository.findByUser(user)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
-
-        Cart cart = cartRepository.findByCustomerId(customer.getId())
-                .orElseGet(() -> {
-                    Cart newCart = new Cart();
-                    newCart.setCustomer(customer);
-                    newCart.setGrandTotal(BigDecimal.ZERO);
-                    return cartRepository.save(newCart);
-                });
-
-        Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with this Id"));
-
-        if (!product.isAvailable()) {
-            throw new InvalidRequestException("Product is out of stock");
-        }
-
-        if (request.getQuantity() <= 0) {
-            throw new InvalidRequestException("Quantity must be greater than zero");
-        }
-
-        CartItem item = cartItemRepository.findByCartIdAndProductId(cart.getId(), product.getId())
+        User user = getUserByEmail(email);
+        Customer customer = getCustomerByUser(user);
+        
+        Cart cart = getOrCreateCart(customer);
+        
+        Product product = getProductById(request.getProductId());
+        
+        validateProductAvailability(product);
+        validateQuantity(request.getQuantity());
+        
+        CartItem item = cartItemRepository
+                .findByCartIdAndProductId(cart.getId(), product.getId())
                 .orElse(null);
-
-        int newQuantity;
-        if (item == null) {
-            newQuantity = request.getQuantity();
-            item = new CartItem();
-            item.setCart(cart);
-            item.setProduct(product);
-        } else {
-            newQuantity = item.getQuantity() + request.getQuantity();
-        }
-
-        if (product.getStock() < newQuantity) {
-            throw new InvalidRequestException(
-                String.format("Not enough stock. Available: %d, Requested: %d", 
-                    product.getStock(), newQuantity)
-            );
-        }
-
-        // Calculate current price with active discount
+        
+        int newQuantity = (item == null) ? request.getQuantity() : item.getQuantity() + request.getQuantity();
+        
+        validateStock(product, newQuantity);
+        
         BigDecimal currentPrice = calculateCurrentProductPrice(product);
         
-        item.setPrice(currentPrice);
-        item.setQuantity(newQuantity);
-        item.setTotalPrice(currentPrice.multiply(BigDecimal.valueOf(newQuantity)));
-
+        if (item == null) {
+            item = createNewCartItem(cart, product, currentPrice, request.getQuantity());
+        } else {
+            updateExistingCartItem(item, currentPrice, newQuantity);
+        }
+        
         CartItem savedItem = cartItemRepository.save(item);
         
-        // Refresh cart after adding
-        refreshCart(cart);
-
-        return mapToDto(savedItem);
+        updateCartGrandTotal(cart);
+        
+        log.info("Added {} of product '{}' to cart for customer {}", 
+            request.getQuantity(), product.getName(), customer.getId());
+        
+        return mapToCartItemResponseDto(savedItem);
     }
 
     public CartResponseDto getCartByUserEmail(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with this email"));
-
-        Customer customer = customerRepository.findByUser(user)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
-
+        User user = getUserByEmail(email);
+        Customer customer = getCustomerByUser(user);
+        
         Cart cart = cartRepository.findByCustomerId(customer.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
-
-        // Refresh cart to update prices and remove invalid items
+        
         refreshCart(cart);
-
-        // Reload from DB after refresh
+        
         Cart updatedCart = cartRepository.findById(cart.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
 
         List<CartItemResponseDto> itemDtos = updatedCart.getItems()
                 .stream()
-                .map(this::mapToDto)
+                .map(this::mapToCartItemResponseDto)
                 .collect(Collectors.toList());
-
+        
         return new CartResponseDto(itemDtos, updatedCart.getGrandTotal());
     }
 
     @Transactional
     public CartItemResponseDto updateCartItemQuantity(String email, Long productId, Integer newQuantity) {
+        // Validate input
         if (newQuantity <= 0) {
             throw new InvalidRequestException("Quantity must be greater than zero");
         }
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with this Id"));
-
-        Customer customer = customerRepository.findByUser(user)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
-
-        Cart cart = cartRepository.findByCustomerId(customer.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
-
-        CartItem item = cartItemRepository.findByCartIdAndProductId(cart.getId(), productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Item not found"));
-
+        
+        User user = getUserByEmail(email);
+        Customer customer = getCustomerByUser(user);
+        Cart cart = getCartByCustomer(customer);
+     
+        CartItem item = cartItemRepository
+                .findByCartIdAndProductId(cart.getId(), productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Item not found in cart"));
+        
         Product product = item.getProduct();
         
-        if (product.getStock() < newQuantity) {
-            throw new InvalidRequestException(
-                String.format("Not enough stock. Available: %d, Requested: %d", 
-                    product.getStock(), newQuantity)
-            );
-        }
-
-        // Update to current price
+        validateStock(product, newQuantity);
         BigDecimal currentPrice = calculateCurrentProductPrice(product);
         item.setPrice(currentPrice);
         item.setQuantity(newQuantity);
         item.setTotalPrice(currentPrice.multiply(BigDecimal.valueOf(newQuantity)));
-
-        CartItem savedItem = cartItemRepository.save(item);
         
-        // Refresh cart
-        refreshCart(cart);
-
-        return mapToDto(savedItem);
+        CartItem savedItem = cartItemRepository.save(item);
+      
+        updateCartGrandTotal(cart);
+        
+        log.info("Updated quantity of product '{}' to {} for customer {}", 
+            product.getName(), newQuantity, customer.getId());
+        
+        return mapToCartItemResponseDto(savedItem);
     }
 
     @Transactional
     public void removeItemFromCart(String email, Long productId) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with this Id"));
-
-        Customer customer = customerRepository.findByUser(user)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
-
-        Cart cart = cartRepository.findByCustomerId(customer.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
-
-        cartItemRepository.deleteByCartIdAndProductId(cart.getId(), productId);
+        User user = getUserByEmail(email);
+        Customer customer = getCustomerByUser(user);
+        Cart cart = getCartByCustomer(customer);
         
-        // Refresh cart
-        refreshCart(cart);
+        int deletedCount = cartItemRepository.deleteByCartIdAndProductId(cart.getId(), productId);
+        
+        if (deletedCount == 0) {
+            throw new ResourceNotFoundException("Item not found in cart");
+        }
+        
+        updateCartGrandTotal(cart);
+        
+        log.info("Removed product {} from cart for customer {}", productId, customer.getId());
     }
 
     @Transactional
     public void clearCart(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with this Id"));
-
-        Customer customer = customerRepository.findByUser(user)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
-
-        Cart cart = cartRepository.findByCustomerId(customer.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
-
+        User user = getUserByEmail(email);
+        Customer customer = getCustomerByUser(user);
+        Cart cart = getCartByCustomer(customer);
+        
         cartItemRepository.deleteByCartId(cart.getId());
-
+        
         cart.setGrandTotal(BigDecimal.ZERO);
         cartRepository.save(cart);
+        
+        log.info("Cleared cart for customer {}", customer.getId());
     }
 
-    // ============================================================
-    // CORE REFRESH FUNCTION - Used by both Cart and Order services
-    // ============================================================
-    
-    /**
-     * Comprehensive cart refresh function that:
-     * 1. Updates all item prices based on current active discounts
-     * 2. Removes out-of-stock products
-     * 3. Removes products with insufficient stock
-     * 4. Recalculates grand total
-     * 5. Returns refresh result with details about changes
-     * 
-     * @param cart Cart to refresh
-     * @return CartRefreshResult containing details of what changed
-     */
     @Transactional
     public CartRefreshResult refreshCart(Cart cart) {
-        if (cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
+        if (cart == null) {
             return new CartRefreshResult(false, 0, 0, BigDecimal.ZERO);
         }
         
-        log.info("Refreshing cart ID: {} for customer: {}", cart.getId(), cart.getCustomer().getId());
+        log.debug("Refreshing cart ID: {}", cart.getId());
+        
+        List<CartItem> items = cartItemRepository.findByCartId(cart.getId());
+        
+        if (items.isEmpty()) {
+            cart.setGrandTotal(BigDecimal.ZERO);
+            cartRepository.save(cart);
+            return new CartRefreshResult(false, 0, 0, BigDecimal.ZERO);
+        }
         
         boolean changed = false;
-        int removedItemsCount = 0;
+        int removedCount = 0;
         int priceUpdatedCount = 0;
-        BigDecimal oldGrandTotal = cart.getGrandTotal();
-        
-        // Create a copy of items to avoid concurrent modification
-        List<CartItem> items = new java.util.ArrayList<>(cart.getItems());
         
         for (CartItem item : items) {
             Product product = item.getProduct();
             
-            // Refresh product from database
-            Product refreshedProduct = productRepository.findById(product.getId())
-                    .orElse(null);
-            
-            // Case 1: Product no longer exists
+            Product refreshedProduct = productRepository.findById(product.getId()).orElse(null);
             if (refreshedProduct == null) {
                 cartItemRepository.delete(item);
-                removedItemsCount++;
+                removedCount++;
                 changed = true;
                 log.debug("Removed item {} - product no longer exists", item.getId());
                 continue;
             }
             
-            // Case 2: Product out of stock
             if (!refreshedProduct.isAvailable()) {
                 cartItemRepository.delete(item);
-                removedItemsCount++;
+                removedCount++;
                 changed = true;
-                log.debug("Removed item {} - product {} is out of stock", 
-                    item.getId(), refreshedProduct.getName());
+                log.debug("Removed item {} - product out of stock", item.getId());
                 continue;
             }
             
-            // Case 3: Insufficient stock for current quantity
             if (refreshedProduct.getStock() < item.getQuantity()) {
                 cartItemRepository.delete(item);
-                removedItemsCount++;
+                removedCount++;
                 changed = true;
-                log.debug("Removed item {} - insufficient stock (need: {}, available: {})", 
-                    item.getId(), item.getQuantity(), refreshedProduct.getStock());
+                log.debug("Removed item {} - insufficient stock", item.getId());
                 continue;
             }
-            
-            // Case 4: Price changed due to discount start/expiration
+           
             BigDecimal currentPrice = calculateCurrentProductPrice(refreshedProduct);
             if (item.getPrice().compareTo(currentPrice) != 0) {
-                BigDecimal oldPrice = item.getPrice();
                 item.setPrice(currentPrice);
                 item.setTotalPrice(currentPrice.multiply(BigDecimal.valueOf(item.getQuantity())));
                 cartItemRepository.save(item);
                 priceUpdatedCount++;
                 changed = true;
-                log.debug("Updated price for item {} - from {} to {}", 
-                    item.getId(), oldPrice, currentPrice);
+                log.debug("Updated price for item {} from {} to {}", 
+                    item.getId(), item.getPrice(), currentPrice);
             }
         }
         
-        // Recalculate grand total if changes were made
-        BigDecimal newGrandTotal = cart.getGrandTotal();
+        updateCartGrandTotal(cart);
+        
         if (changed) {
-            newGrandTotal = recalculateGrandTotal(cart);
-            cart.setGrandTotal(newGrandTotal);
-            cartRepository.save(cart);
-            log.info("Cart refreshed - Removed: {}, Price updates: {}, Old total: {}, New total: {}", 
-                removedItemsCount, priceUpdatedCount, oldGrandTotal, newGrandTotal);
+            log.info("Cart refreshed - Removed: {}, Price updates: {}", removedCount, priceUpdatedCount);
         }
         
-        return new CartRefreshResult(changed, removedItemsCount, priceUpdatedCount, newGrandTotal);
+        return new CartRefreshResult(changed, removedCount, priceUpdatedCount, cart.getGrandTotal());
     }
-    
-    /**
-     * Refresh cart before order placement
-     * This is stricter than regular refresh - it will throw exceptions for issues
-     * 
-     * @param cart Cart to validate for order
-     * @throws InvalidRequestException if cart has invalid items for ordering
-     */
+
     @Transactional
-    public void validateAndRefreshCartForOrder(Cart cart) {
+    public void validateCartForOrder(Cart cart) {
         if (cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
             throw new InvalidRequestException("Cart is empty");
         }
         
-        log.info("Validating cart ID: {} for order placement", cart.getId());
+        log.info("Validating cart {} for order", cart.getId());
+    
+        refreshCart(cart);
+        
+        Cart refreshedCart = cartRepository.findById(cart.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
         
         StringBuilder errors = new StringBuilder();
         boolean hasErrors = false;
         
-        // First, refresh the cart to get latest prices and stock
-        CartRefreshResult refreshResult = refreshCart(cart);
-        
-        if (refreshResult.isChanged()) {
-            log.info("Cart was refreshed before order. Removed: {}, Price updates: {}", 
-                refreshResult.getRemovedItemsCount(), refreshResult.getPriceUpdatedCount());
-        }
-        
-        // Now validate each item for order placement
-        for (CartItem item : cart.getItems()) {
+        for (CartItem item : refreshedCart.getItems()) {
             Product product = item.getProduct();
-            Product refreshedProduct = productRepository.findById(product.getId())
-                    .orElse(null);
+            Product currentProduct = productRepository.findById(product.getId()).orElse(null);
             
-            if (refreshedProduct == null) {
+            if (currentProduct == null) {
                 errors.append(String.format("Product '%s' no longer exists. ", product.getName()));
                 hasErrors = true;
                 continue;
             }
             
-            if (!refreshedProduct.isAvailable()) {
-                errors.append(String.format("Product '%s' is out of stock. ", refreshedProduct.getName()));
+            if (!currentProduct.isAvailable()) {
+                errors.append(String.format("Product '%s' is out of stock. ", currentProduct.getName()));
                 hasErrors = true;
                 continue;
             }
             
-            if (refreshedProduct.getStock() < item.getQuantity()) {
+            if (currentProduct.getStock() < item.getQuantity()) {
                 errors.append(String.format("Insufficient stock for '%s'. Available: %d, Requested: %d. ", 
-                    refreshedProduct.getName(), refreshedProduct.getStock(), item.getQuantity()));
+                    currentProduct.getName(), currentProduct.getStock(), item.getQuantity()));
                 hasErrors = true;
                 continue;
             }
             
-            // Verify price is still valid (should be updated by refreshCart)
-            BigDecimal currentPrice = calculateCurrentProductPrice(refreshedProduct);
+            BigDecimal currentPrice = calculateCurrentProductPrice(currentProduct);
             if (item.getPrice().compareTo(currentPrice) != 0) {
                 errors.append(String.format("Price changed for '%s'. Old: %s, New: %s. ", 
-                    refreshedProduct.getName(), item.getPrice(), currentPrice));
+                    currentProduct.getName(), item.getPrice(), currentPrice));
                 hasErrors = true;
             }
         }
@@ -360,47 +282,119 @@ public class CartService {
             throw new InvalidRequestException("Cannot place order: " + errors.toString());
         }
         
-        log.info("Cart validated successfully for order. Total items: {}, Grand total: {}", 
-            cart.getItems().size(), cart.getGrandTotal());
+        log.info("Cart validated successfully. Total items: {}, Grand total: {}", 
+            refreshedCart.getItems().size(), refreshedCart.getGrandTotal());
     }
-    
-    /**
-     * Get cart by customer with automatic refresh
-     */
+
     public Cart getCartAndRefresh(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = getUserByEmail(email);
+        Customer customer = getCustomerByUser(user);
         
-        Customer customer = customerRepository.findByUser(user)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
-        
-        Cart cart = cartRepository.findByCustomerId(customer.getId())
-                .orElse(null);
+        Cart cart = cartRepository.findByCustomerId(customer.getId()).orElse(null);
         
         if (cart != null) {
             refreshCart(cart);
+            cart = cartRepository.findById(cart.getId()).orElse(null);
         }
         
         return cart;
     }
-    
-    /**
-     * Recalculate grand total from cart items
-     */
+
+
+    private User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+    }
+
+    private Customer getCustomerByUser(User user) {
+        return customerRepository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found for user: " + user.getEmail()));
+    }
+
+    private Product getProductById(Long productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+    }
+
+    private Cart getOrCreateCart(Customer customer) {
+        return cartRepository.findByCustomerId(customer.getId())
+                .orElseGet(() -> {
+                    Cart newCart = new Cart();
+                    newCart.setCustomer(customer);
+                    newCart.setGrandTotal(BigDecimal.ZERO);
+                    log.info("Created new cart for customer: {}", customer.getId());
+                    return cartRepository.save(newCart);
+                });
+    }
+
+    private Cart getCartByCustomer(Customer customer) {
+        return cartRepository.findByCustomerId(customer.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found for customer"));
+    }
+
+    private void validateProductAvailability(Product product) {
+        if (!product.isAvailable()) {
+            throw new InvalidRequestException("Product '" + product.getName() + "' is out of stock");
+        }
+    }
+
+    private void validateQuantity(Integer quantity) {
+        if (quantity == null || quantity <= 0) {
+            throw new InvalidRequestException("Quantity must be greater than zero");
+        }
+    }
+
+    private void validateStock(Product product, int requestedQuantity) {
+        if (product.getStock() < requestedQuantity) {
+            throw new InvalidRequestException(
+                String.format("Not enough stock for '%s'. Available: %d, Requested: %d",
+                    product.getName(), product.getStock(), requestedQuantity)
+            );
+        }
+    }
+
+    private CartItem createNewCartItem(Cart cart, Product product, BigDecimal price, int quantity) {
+        CartItem item = new CartItem();
+        item.setCart(cart);
+        item.setProduct(product);
+        item.setPrice(price);
+        item.setQuantity(quantity);
+        item.setTotalPrice(price.multiply(BigDecimal.valueOf(quantity)));
+        return item;
+    }
+
+    private void updateExistingCartItem(CartItem item, BigDecimal currentPrice, int newQuantity) {
+        item.setPrice(currentPrice);
+        item.setQuantity(newQuantity);
+        item.setTotalPrice(currentPrice.multiply(BigDecimal.valueOf(newQuantity)));
+    }
+
+    private void updateCartGrandTotal(Cart cart) {
+        BigDecimal grandTotal = recalculateGrandTotal(cart);
+        cart.setGrandTotal(grandTotal);
+        cartRepository.save(cart);
+        log.debug("Updated cart {} grand total to: {}", cart.getId(), grandTotal);
+    }
+
     private BigDecimal recalculateGrandTotal(Cart cart) {
         List<CartItem> items = cartItemRepository.findByCartId(cart.getId());
         
+        if (items == null || items.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        
         BigDecimal grandTotal = items.stream()
-                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .map(item -> item.getTotalPrice() != null ? 
+                    item.getTotalPrice() : 
+                    item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .setScale(2, RoundingMode.HALF_UP);
         
+        log.debug("Recalculated grand total for cart {}: {}", cart.getId(), grandTotal);
+        
         return grandTotal;
     }
-    
-    /**
-     * Calculate current price considering active discounts
-     */
+
     private BigDecimal calculateCurrentProductPrice(Product product) {
         if (product.getDiscounts() == null || product.getDiscounts().isEmpty()) {
             return product.getPrice();
@@ -408,7 +402,6 @@ public class CartService {
         
         LocalDateTime now = LocalDateTime.now();
         
-        // Find best active discount (highest percentage)
         Discount bestDiscount = product.getDiscounts().stream()
                 .filter(discount -> discount.getActive() && discount.isDiscountCurrentlyActive())
                 .filter(discount -> {
@@ -428,24 +421,26 @@ public class CartService {
                 .multiply(bestDiscount.getDiscountPercent())
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
         
-        return product.getPrice().subtract(discountAmount);
+        BigDecimal discountedPrice = product.getPrice().subtract(discountAmount);
+        
+        log.debug("Calculated discounted price for product {}: {} -> {}", 
+            product.getName(), product.getPrice(), discountedPrice);
+        
+        return discountedPrice;
     }
-    
-    private CartItemResponseDto mapToDto(CartItem item) {
+
+    private CartItemResponseDto mapToCartItemResponseDto(CartItem item) {
         CartItemResponseDto dto = new CartItemResponseDto();
         dto.setId(item.getId());
         dto.setProductId(item.getProduct().getId());
         dto.setProductName(item.getProduct().getName());
+        dto.setProductImage(item.getProduct().getImageUrl());
         dto.setQuantity(item.getQuantity());
         dto.setUnitPrice(item.getPrice());
         dto.setTotalPrice(item.getTotalPrice());
         return dto;
     }
-    
-    // ============================================================
-    // Inner Class for Refresh Result
-    // ============================================================
-    
+
     public static class CartRefreshResult {
         private final boolean changed;
         private final int removedItemsCount;
