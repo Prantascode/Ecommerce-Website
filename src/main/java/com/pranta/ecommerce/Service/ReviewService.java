@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.pranta.ecommerce.Dto.ReviewRequestDto;
 import com.pranta.ecommerce.Dto.ReviewResponseDto;
+import com.pranta.ecommerce.Dto.ReviewUpdateRequestDto;
 import com.pranta.ecommerce.Entity.Customer;
 import com.pranta.ecommerce.Entity.Order;
 import com.pranta.ecommerce.Entity.OrderItem;
@@ -14,6 +15,7 @@ import com.pranta.ecommerce.Entity.Product;
 import com.pranta.ecommerce.Entity.Review;
 import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
+import com.pranta.ecommerce.Exceptions.UnauthorizedAccessException;
 import com.pranta.ecommerce.Repository.CustomerRepository;
 import com.pranta.ecommerce.Repository.OrderItemRepository;
 import com.pranta.ecommerce.Repository.OrderRepository;
@@ -22,16 +24,18 @@ import com.pranta.ecommerce.Repository.ReviewRepository;
 import com.pranta.ecommerce.Repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
-    private final OrderItemRepository orderItemRepository;  // Fixed typo
+    private final OrderItemRepository orderItemRepository;  
 
     public ReviewResponseDto reviewOrderedProduct(String email, Long productId, ReviewRequestDto requestDto) {
         User user = userRepository.findByEmail(email)
@@ -65,6 +69,58 @@ public class ReviewService {
         return mapToResponseDto(savedReview);
     }
 
+    public ReviewResponseDto editReview(Long reviewId,String email,ReviewUpdateRequestDto requestDto){
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(()-> new ResourceNotFoundException("Review not found"));
+        
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Customer customer = customerRepository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+
+        if (!review.getCustomer().getId().equals(customer.getId())) {
+            throw new UnauthorizedAccessException("Only valid customer can update the review");
+        }
+        if (requestDto.getRating() != null) {
+            review.setComment(requestDto.getComment());
+        }
+
+        if (requestDto.getComment() != null & !requestDto.getComment().trim().isEmpty()) {
+            review.setRating(requestDto.getRating());
+        }
+        
+        review.setUpdateAt(LocalDateTime.now());
+
+        Review updatedReview = reviewRepository.save(review);
+
+        return mapToResponseDto(updatedReview);
+    }
+
+    public void deleteReview(Long reviewId,String email){
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Customer customer = customerRepository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found"));
+        
+        if (!review.getCustomer().getId().equals(customer.getId())) {
+            throw new UnauthorizedAccessException("Invalid customer can't delete review");
+        }
+
+        Product product = review.getProduct();
+    
+        reviewRepository.delete(review);
+
+        updateProductAverageRating(product);
+
+        log.info("Review {} deleted by customer {}. Product rating updated.", 
+        reviewId, customer.getId());
+    }
+
     private boolean isVerifiedPurchase(Customer customer, Product product) {
         List<Order> orders = orderRepository.findByCustomer(customer);
         
@@ -85,6 +141,7 @@ public class ReviewService {
         List<Review> reviews = reviewRepository.findByProduct(product);
         if (reviews.isEmpty()) {
             product.setAverageRating(0.0);
+            product.setTotalReviews(0);
         } else {
             double average = reviews.stream()
                     .mapToInt(Review::getRating)
