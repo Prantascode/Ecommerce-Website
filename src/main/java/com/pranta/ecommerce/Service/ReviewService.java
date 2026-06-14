@@ -69,8 +69,34 @@ public class ReviewService {
         return mapToResponseDto(savedReview);
     }
 
-    public ReviewResponseDto editReview(Long reviewId,String email,ReviewUpdateRequestDto requestDto){
-        Review review = reviewRepository.findById(reviewId)
+    public ReviewResponseDto getOwnReview(String email,Long productId){
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with "+email));
+        
+        Customer customer = customerRepository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+
+        Review review = reviewRepository.findByProductId(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found"));
+        
+        if (!review.getCustomer().getId().equals(customer.getId())) {
+            throw new UnauthorizedAccessException("Unauthorized Access: You are not eligable for this request");
+        }
+
+        return mapToResponseDto(review);
+    }
+
+    public ReviewResponseDto getAllReview(Long productId){
+
+        Review review = reviewRepository.findByProductId(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found"));
+                
+
+        return mapToResponseDto(review);
+    }
+
+    public ReviewResponseDto editReview(Long productId,String email,ReviewUpdateRequestDto requestDto){
+        Review review = reviewRepository.findByProductId(productId)
                 .orElseThrow(()-> new ResourceNotFoundException("Review not found"));
         
         User user = userRepository.findByEmail(email)
@@ -97,14 +123,14 @@ public class ReviewService {
         return mapToResponseDto(updatedReview);
     }
 
-    public void deleteReview(Long reviewId,String email){
+    public void deleteReview(Long productId,String email){
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Customer customer = customerRepository.findByUser(user)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
-        Review review = reviewRepository.findById(reviewId)
+        Review review = reviewRepository.findByProductId(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Review not found"));
         
         if (!review.getCustomer().getId().equals(customer.getId())) {
@@ -118,7 +144,7 @@ public class ReviewService {
         updateProductAverageRating(product);
 
         log.info("Review {} deleted by customer {}. Product rating updated.", 
-        reviewId, customer.getId());
+        review.getId(), customer.getId());
     }
 
     private boolean isVerifiedPurchase(Customer customer, Product product) {

@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,23 +38,44 @@ public class ReviewController {
     }
 
     @PreAuthorize("hasRole('USER')")
-    @PutMapping("edit/{reviewId}")
-    public ResponseEntity<ReviewResponseDto> editTheReview(@PathVariable Long reviewId,@Valid @RequestBody ReviewUpdateRequestDto requestDto,Authentication authentication) {
+    @GetMapping("/myReview/{productId}")
+    public ResponseEntity<ReviewResponseDto> getMyReviewByProduct(Authentication authentication,@PathVariable Long productId){
+        String email = authentication.getName();
+
+        ReviewResponseDto response = reviewService.getOwnReview(email, productId);
+
+        return ResponseEntity.status(HttpStatus.FOUND).body(response);
+    }
+
+    @GetMapping("/allReviews/{productId}")
+    public ResponseEntity<ReviewResponseDto> getAllReviewsOfProduct(@PathVariable Long productId){
+
+        ReviewResponseDto response = reviewService.getAllReview(productId);
+
+        return ResponseEntity.status(HttpStatus.FOUND).body(response);
+    }
+
+
+    @PreAuthorize("hasRole('USER')")
+    @PutMapping("/edit/{productId}")
+    public ResponseEntity<ReviewResponseDto> editTheReview(@PathVariable Long productId,@Valid @RequestBody ReviewUpdateRequestDto requestDto,Authentication authentication) {
        
         String email = authentication.getName();
-        ReviewResponseDto response = reviewService.editReview(reviewId,email,requestDto);
+        ReviewResponseDto response = reviewService.editReview(productId,email,requestDto);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 
     @PreAuthorize("hasRole('USER')")
-    @DeleteMapping("/{reviewId}")
-    public ResponseEntity<String> deleteTheReview(Authentication authentication,@PathVariable Long reviewId){
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<String> deleteTheReview(Authentication authentication,@PathVariable Long productId){
         String email = authentication.getName();
         
-        reviewService.deleteReview(reviewId, email);
+        reviewService.deleteReview(productId, email);
 
         return ResponseEntity.ok("Review is deleted sucessfully");
 
     }
+
+
 }
