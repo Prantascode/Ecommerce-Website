@@ -1,6 +1,7 @@
 package com.pranta.ecommerce.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -86,13 +87,18 @@ public class ReviewService {
         return mapToResponseDto(review);
     }
 
-    public ReviewResponseDto getAllReview(Long productId){
+    public List<ReviewResponseDto> getAllReview(Long productId){
 
-        Review review = reviewRepository.findByProductId(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Review not found"));
-                
+        List<Review> reviews = reviewRepository.findAllReviewsByProductId(productId);
 
-        return mapToResponseDto(review);
+        if (reviews.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return reviews.stream()
+                .map(this::mapToResponseDto)
+                .toList();
+
     }
 
     public ReviewResponseDto editReview(Long productId,String email,ReviewUpdateRequestDto requestDto){

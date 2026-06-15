@@ -1,5 +1,7 @@
 package com.pranta.ecommerce.Controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,9 +50,9 @@ public class ReviewController {
     }
 
     @GetMapping("/allReviews/{productId}")
-    public ResponseEntity<ReviewResponseDto> getAllReviewsOfProduct(@PathVariable Long productId){
+    public ResponseEntity<List<ReviewResponseDto>> getAllReviewsOfProduct(@PathVariable Long productId){
 
-        ReviewResponseDto response = reviewService.getAllReview(productId);
+        List<ReviewResponseDto> response = reviewService.getAllReview(productId);
 
         return ResponseEntity.status(HttpStatus.FOUND).body(response);
     }
