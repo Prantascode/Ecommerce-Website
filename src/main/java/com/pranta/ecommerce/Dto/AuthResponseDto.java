@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AuthResponseDto {
     
-    private String token;
     private Register_LoginResponseDto user;
+    private String token;
+    private String refreshToken;
+    
 }
