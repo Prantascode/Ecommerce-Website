@@ -1,53 +1,13 @@
 package com.pranta.ecommerce.Service;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Service;
 
 import com.pranta.ecommerce.Dto.CategoryRequestDto;
 import com.pranta.ecommerce.Dto.CategoryResponeDto;
-import com.pranta.ecommerce.Entity.Category;
-import com.pranta.ecommerce.Repository.CategoryRepository;
 
-import lombok.RequiredArgsConstructor;
-
-@RequiredArgsConstructor
-@Service
-public class CategoryService {
+public interface CategoryService {
     
-    private final CategoryRepository categoryRepository;
-
-    public CategoryResponeDto createCategory(CategoryRequestDto dto){
-
-        Category category = new Category();
-
-        category.setName(dto.getName());
-
-        Category categorys = categoryRepository.save(category);
-
-        return mapToDto(categorys);
-
-    }
-
-    public List<CategoryResponeDto> getCategorys(){
-
-        List<Category> categories =  categoryRepository.findAll();
-
-        if (categories.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return categories
-                .stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
-                
-    }
-
-    private CategoryResponeDto mapToDto(Category category){
-        return new CategoryResponeDto(
-            category.getName()
-        );
-    }
+    CategoryResponeDto createCategory(CategoryRequestDto dto);
+    
+    List<CategoryResponeDto> getCategorys();
 }
