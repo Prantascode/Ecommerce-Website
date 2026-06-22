@@ -1,7 +1,7 @@
 package com.pranta.ecommerce.Controller;
 
-import com.pranta.ecommerce.Dto.DiscountRequestDto;
-import com.pranta.ecommerce.Dto.DiscountResponseDto;
+import com.pranta.ecommerce.Dto.Request.DiscountRequestDto;
+import com.pranta.ecommerce.Dto.Response.DiscountResponseDto;
 import com.pranta.ecommerce.Exceptions.InvalidRequestException;
 import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
 import com.pranta.ecommerce.Service.DiscountService;

@@ -2,8 +2,8 @@ package com.pranta.ecommerce.Service.Impl;
 
 import org.springframework.stereotype.Service;
 
-import com.pranta.ecommerce.Dto.CustomerRequestDto;
-import com.pranta.ecommerce.Dto.CustomerResponseDto;
+import com.pranta.ecommerce.Dto.Request.CustomerRequestDto;
+import com.pranta.ecommerce.Dto.Response.CustomerResponseDto;
 import com.pranta.ecommerce.Entity.Customer;
 import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Exceptions.InvalidRequestException;

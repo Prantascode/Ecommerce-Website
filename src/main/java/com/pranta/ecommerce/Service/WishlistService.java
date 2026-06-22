@@ -6,8 +6,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.pranta.ecommerce.Dto.WishlistRequestDto;
-import com.pranta.ecommerce.Dto.WishlistResponseDto;
+import com.pranta.ecommerce.Dto.Request.WishlistRequestDto;
+import com.pranta.ecommerce.Dto.Response.WishlistResponseDto;
 import com.pranta.ecommerce.Entity.Product;
 import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Entity.Wishlist;

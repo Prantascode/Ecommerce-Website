@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.pranta.ecommerce.Dto.PaymentResponseDto;
+import com.pranta.ecommerce.Dto.Response.PaymentResponseDto;
 import com.pranta.ecommerce.Entity.Order;
 import com.pranta.ecommerce.Entity.Payment;
 import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;

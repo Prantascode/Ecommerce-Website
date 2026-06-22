@@ -6,8 +6,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.pranta.ecommerce.Dto.BrandRequestDto;
-import com.pranta.ecommerce.Dto.BrandResponseDto;
+import com.pranta.ecommerce.Dto.Request.BrandRequestDto;
+import com.pranta.ecommerce.Dto.Response.BrandResponseDto;
 import com.pranta.ecommerce.Entity.Brand;
 import com.pranta.ecommerce.Exceptions.DuplicateResourceException;
 import com.pranta.ecommerce.Repository.BrandRepository;

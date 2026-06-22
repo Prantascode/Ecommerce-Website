@@ -13,7 +13,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import com.pranta.ecommerce.Config.SSLCommerzConfig;
-import com.pranta.ecommerce.Dto.PaymentResponseDto;
+import com.pranta.ecommerce.Dto.Response.PaymentResponseDto;
 import com.pranta.ecommerce.Entity.Order;
 import com.pranta.ecommerce.Entity.Payment;
 import com.pranta.ecommerce.Entity.Payment.PaymentStatus;

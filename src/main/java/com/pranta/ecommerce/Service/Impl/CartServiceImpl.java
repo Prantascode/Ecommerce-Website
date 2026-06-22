@@ -8,9 +8,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.pranta.ecommerce.Dto.CartItemRequestDto;
-import com.pranta.ecommerce.Dto.CartItemResponseDto;
-import com.pranta.ecommerce.Dto.CartResponseDto;
+import com.pranta.ecommerce.Dto.Request.CartItemRequestDto;
+import com.pranta.ecommerce.Dto.Response.CartItemResponseDto;
+import com.pranta.ecommerce.Dto.Response.CartResponseDto;
 import com.pranta.ecommerce.Entity.Cart;
 import com.pranta.ecommerce.Entity.CartItem;
 import com.pranta.ecommerce.Entity.Customer;

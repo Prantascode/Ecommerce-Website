@@ -2,8 +2,8 @@ package com.pranta.ecommerce.Service;
 
 import java.util.List;
 
-import com.pranta.ecommerce.Dto.DiscountRequestDto;
-import com.pranta.ecommerce.Dto.DiscountResponseDto;
+import com.pranta.ecommerce.Dto.Request.DiscountRequestDto;
+import com.pranta.ecommerce.Dto.Response.DiscountResponseDto;
 
 public interface DiscountService {
     

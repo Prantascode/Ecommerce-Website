@@ -2,8 +2,8 @@ package com.pranta.ecommerce.Service;
 
 import java.util.List;
 
-import com.pranta.ecommerce.Dto.UpdateEmailDto;
-import com.pranta.ecommerce.Dto.UserResponseDto;
+import com.pranta.ecommerce.Dto.Request.UpdateEmailDto;
+import com.pranta.ecommerce.Dto.Response.UserResponseDto;
 import com.pranta.ecommerce.Entity.User;
 
 public interface UserService {

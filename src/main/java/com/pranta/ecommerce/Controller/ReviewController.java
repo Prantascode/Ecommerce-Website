@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.pranta.ecommerce.Dto.ReviewRequestDto;
-import com.pranta.ecommerce.Dto.ReviewResponseDto;
-import com.pranta.ecommerce.Dto.ReviewUpdateRequestDto;
+import com.pranta.ecommerce.Dto.Request.ReviewRequestDto;
+import com.pranta.ecommerce.Dto.Request.ReviewUpdateRequestDto;
+import com.pranta.ecommerce.Dto.Response.ReviewResponseDto;
 import com.pranta.ecommerce.Service.ReviewService;
 
 import jakarta.validation.Valid;

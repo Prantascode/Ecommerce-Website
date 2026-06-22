@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.pranta.ecommerce.Dto.OrderItemResponseDto;
+import com.pranta.ecommerce.Dto.Response.OrderItemResponseDto;
 import com.pranta.ecommerce.Entity.CartItem;
 import com.pranta.ecommerce.Entity.Order;
 import com.pranta.ecommerce.Entity.OrderItem;

@@ -7,11 +7,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.pranta.ecommerce.Dto.AuthResponseDto;
-import com.pranta.ecommerce.Dto.LoginRequest;
-import com.pranta.ecommerce.Dto.RefreshTokenRequest;
-import com.pranta.ecommerce.Dto.RegistationDto;
-import com.pranta.ecommerce.Dto.Register_LoginResponseDto;
+import com.pranta.ecommerce.Dto.Request.LoginRequest;
+import com.pranta.ecommerce.Dto.Request.RefreshTokenRequest;
+import com.pranta.ecommerce.Dto.Request.RegistationDto;
+import com.pranta.ecommerce.Dto.Response.AuthResponseDto;
+import com.pranta.ecommerce.Dto.Response.Register_LoginResponseDto;
 import com.pranta.ecommerce.Service.AuthService;
 
 import io.swagger.v3.oas.annotations.Operation;

@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.pranta.ecommerce.Dto.ProductRequestDto;
-import com.pranta.ecommerce.Dto.ProductResponseDto;
-import com.pranta.ecommerce.Dto.ProductStockResponseDto;
+import com.pranta.ecommerce.Dto.Request.ProductRequestDto;
+import com.pranta.ecommerce.Dto.Response.ProductResponseDto;
+import com.pranta.ecommerce.Dto.Response.ProductStockResponseDto;
 import com.pranta.ecommerce.Entity.Brand;
 import com.pranta.ecommerce.Entity.Category;
 import com.pranta.ecommerce.Service.ProductService;

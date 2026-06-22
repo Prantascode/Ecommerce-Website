@@ -2,8 +2,8 @@ package com.pranta.ecommerce.Service;
 
 import java.util.List;
 
-import com.pranta.ecommerce.Dto.CategoryRequestDto;
-import com.pranta.ecommerce.Dto.CategoryResponeDto;
+import com.pranta.ecommerce.Dto.Request.CategoryRequestDto;
+import com.pranta.ecommerce.Dto.Response.CategoryResponeDto;
 
 public interface CategoryService {
     

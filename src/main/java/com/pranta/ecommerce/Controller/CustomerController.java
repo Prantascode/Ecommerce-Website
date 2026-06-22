@@ -5,8 +5,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import com.pranta.ecommerce.Dto.CustomerRequestDto;
-import com.pranta.ecommerce.Dto.CustomerResponseDto;
+import com.pranta.ecommerce.Dto.Request.CustomerRequestDto;
+import com.pranta.ecommerce.Dto.Response.CustomerResponseDto;
 import com.pranta.ecommerce.Service.CustomerService;
 
 import io.swagger.v3.oas.annotations.Operation;

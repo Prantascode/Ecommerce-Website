@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.pranta.ecommerce.Dto.OrderResponseDto;
-import com.pranta.ecommerce.Dto.OrderUpdateRequestDto;
+import com.pranta.ecommerce.Dto.Request.OrderUpdateRequestDto;
+import com.pranta.ecommerce.Dto.Response.OrderResponseDto;
 import com.pranta.ecommerce.Entity.Order.OrderStatus;
 import com.pranta.ecommerce.Service.OrderService;
 

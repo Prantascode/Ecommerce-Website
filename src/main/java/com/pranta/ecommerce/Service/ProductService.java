@@ -2,9 +2,9 @@ package com.pranta.ecommerce.Service;
 
 import java.util.List;
 
-import com.pranta.ecommerce.Dto.ProductRequestDto;
-import com.pranta.ecommerce.Dto.ProductResponseDto;
-import com.pranta.ecommerce.Dto.ProductStockResponseDto;
+import com.pranta.ecommerce.Dto.Request.ProductRequestDto;
+import com.pranta.ecommerce.Dto.Response.ProductResponseDto;
+import com.pranta.ecommerce.Dto.Response.ProductStockResponseDto;
 import com.pranta.ecommerce.Entity.Brand;
 import com.pranta.ecommerce.Entity.Category;
 

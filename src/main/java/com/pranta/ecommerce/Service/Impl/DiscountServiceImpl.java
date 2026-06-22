@@ -9,8 +9,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.pranta.ecommerce.Dto.DiscountRequestDto;
-import com.pranta.ecommerce.Dto.DiscountResponseDto;
+import com.pranta.ecommerce.Dto.Request.DiscountRequestDto;
+import com.pranta.ecommerce.Dto.Response.DiscountResponseDto;
 import com.pranta.ecommerce.Entity.Discount;
 import com.pranta.ecommerce.Entity.Product;
 import com.pranta.ecommerce.Exceptions.InvalidRequestException;

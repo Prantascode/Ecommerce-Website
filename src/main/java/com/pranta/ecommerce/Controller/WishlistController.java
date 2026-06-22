@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.pranta.ecommerce.Dto.WishlistRequestDto;
-import com.pranta.ecommerce.Dto.WishlistResponseDto;
+import com.pranta.ecommerce.Dto.Request.WishlistRequestDto;
+import com.pranta.ecommerce.Dto.Response.WishlistResponseDto;
 import com.pranta.ecommerce.Service.WishlistService;
 
 import jakarta.validation.Valid;

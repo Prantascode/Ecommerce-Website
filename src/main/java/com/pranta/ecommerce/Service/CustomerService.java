@@ -1,7 +1,7 @@
 package com.pranta.ecommerce.Service;
 
-import com.pranta.ecommerce.Dto.CustomerRequestDto;
-import com.pranta.ecommerce.Dto.CustomerResponseDto;
+import com.pranta.ecommerce.Dto.Request.CustomerRequestDto;
+import com.pranta.ecommerce.Dto.Response.CustomerResponseDto;
 
 public interface CustomerService {
     

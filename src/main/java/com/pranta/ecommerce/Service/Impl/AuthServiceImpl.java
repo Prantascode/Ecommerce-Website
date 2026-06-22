@@ -3,10 +3,10 @@ package com.pranta.ecommerce.Service.Impl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.pranta.ecommerce.Dto.AuthResponseDto;
-import com.pranta.ecommerce.Dto.LoginRequest;
-import com.pranta.ecommerce.Dto.RegistationDto;
-import com.pranta.ecommerce.Dto.Register_LoginResponseDto;
+import com.pranta.ecommerce.Dto.Request.LoginRequest;
+import com.pranta.ecommerce.Dto.Request.RegistationDto;
+import com.pranta.ecommerce.Dto.Response.AuthResponseDto;
+import com.pranta.ecommerce.Dto.Response.Register_LoginResponseDto;
 import com.pranta.ecommerce.Entity.Customer;
 import com.pranta.ecommerce.Entity.RefreshToken;
 import com.pranta.ecommerce.Entity.User;

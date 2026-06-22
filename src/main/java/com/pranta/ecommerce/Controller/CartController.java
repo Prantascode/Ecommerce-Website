@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PutMapping;
 
-import com.pranta.ecommerce.Dto.CartItemRequestDto;
-import com.pranta.ecommerce.Dto.CartItemResponseDto;
-import com.pranta.ecommerce.Dto.CartResponseDto;
+import com.pranta.ecommerce.Dto.Request.CartItemRequestDto;
+import com.pranta.ecommerce.Dto.Response.CartItemResponseDto;
+import com.pranta.ecommerce.Dto.Response.CartResponseDto;
 import com.pranta.ecommerce.Service.CartService;
 
 import io.swagger.v3.oas.annotations.Operation;

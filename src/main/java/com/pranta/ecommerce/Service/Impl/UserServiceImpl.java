@@ -10,10 +10,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.pranta.ecommerce.Dto.AdminResponseDto;
-import com.pranta.ecommerce.Dto.CostomCustomerResponseDto;
-import com.pranta.ecommerce.Dto.UpdateEmailDto;
-import com.pranta.ecommerce.Dto.UserResponseDto;
+import com.pranta.ecommerce.Dto.Request.UpdateEmailDto;
+import com.pranta.ecommerce.Dto.Response.AdminResponseDto;
+import com.pranta.ecommerce.Dto.Response.CostomCustomerResponseDto;
+import com.pranta.ecommerce.Dto.Response.UserResponseDto;
 import com.pranta.ecommerce.Entity.Customer;
 import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Exceptions.InvalidRequestException;

@@ -6,9 +6,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.pranta.ecommerce.Dto.ReviewRequestDto;
-import com.pranta.ecommerce.Dto.ReviewResponseDto;
-import com.pranta.ecommerce.Dto.ReviewUpdateRequestDto;
+import com.pranta.ecommerce.Dto.Request.ReviewRequestDto;
+import com.pranta.ecommerce.Dto.Request.ReviewUpdateRequestDto;
+import com.pranta.ecommerce.Dto.Response.ReviewResponseDto;
 import com.pranta.ecommerce.Entity.Customer;
 import com.pranta.ecommerce.Entity.Order;
 import com.pranta.ecommerce.Entity.OrderItem;

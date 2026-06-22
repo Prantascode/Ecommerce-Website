@@ -1,9 +1,9 @@
 package com.pranta.ecommerce.Service;
 
-import com.pranta.ecommerce.Dto.AuthResponseDto;
-import com.pranta.ecommerce.Dto.LoginRequest;
-import com.pranta.ecommerce.Dto.RegistationDto;
-import com.pranta.ecommerce.Dto.Register_LoginResponseDto;
+import com.pranta.ecommerce.Dto.Request.LoginRequest;
+import com.pranta.ecommerce.Dto.Request.RegistationDto;
+import com.pranta.ecommerce.Dto.Response.AuthResponseDto;
+import com.pranta.ecommerce.Dto.Response.Register_LoginResponseDto;
 
 public interface AuthService {
     

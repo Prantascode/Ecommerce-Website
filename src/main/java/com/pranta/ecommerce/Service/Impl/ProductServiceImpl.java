@@ -8,10 +8,10 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.pranta.ecommerce.Dto.DiscountResponseDto;
-import com.pranta.ecommerce.Dto.ProductRequestDto;
-import com.pranta.ecommerce.Dto.ProductResponseDto;
-import com.pranta.ecommerce.Dto.ProductStockResponseDto;
+import com.pranta.ecommerce.Dto.Request.ProductRequestDto;
+import com.pranta.ecommerce.Dto.Response.DiscountResponseDto;
+import com.pranta.ecommerce.Dto.Response.ProductResponseDto;
+import com.pranta.ecommerce.Dto.Response.ProductStockResponseDto;
 import com.pranta.ecommerce.Entity.Brand;
 import com.pranta.ecommerce.Entity.Category;
 import com.pranta.ecommerce.Entity.Discount;

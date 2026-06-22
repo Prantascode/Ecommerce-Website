@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.pranta.ecommerce.Dto.CategoryRequestDto;
-import com.pranta.ecommerce.Dto.CategoryResponeDto;
+import com.pranta.ecommerce.Dto.Request.CategoryRequestDto;
+import com.pranta.ecommerce.Dto.Response.CategoryResponeDto;
 import com.pranta.ecommerce.Service.CategoryService;
 
 import io.swagger.v3.oas.annotations.Operation;

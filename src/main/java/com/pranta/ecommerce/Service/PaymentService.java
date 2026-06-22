@@ -1,6 +1,6 @@
 package com.pranta.ecommerce.Service;
 
-import com.pranta.ecommerce.Dto.PaymentResponseDto;
+import com.pranta.ecommerce.Dto.Response.PaymentResponseDto;
 
 public interface PaymentService {
     

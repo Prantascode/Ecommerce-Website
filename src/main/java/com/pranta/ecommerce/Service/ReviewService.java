@@ -2,9 +2,9 @@ package com.pranta.ecommerce.Service;
 
 import java.util.List;
 
-import com.pranta.ecommerce.Dto.ReviewRequestDto;
-import com.pranta.ecommerce.Dto.ReviewResponseDto;
-import com.pranta.ecommerce.Dto.ReviewUpdateRequestDto;
+import com.pranta.ecommerce.Dto.Request.ReviewRequestDto;
+import com.pranta.ecommerce.Dto.Request.ReviewUpdateRequestDto;
+import com.pranta.ecommerce.Dto.Response.ReviewResponseDto;
 
 public interface ReviewService {
     

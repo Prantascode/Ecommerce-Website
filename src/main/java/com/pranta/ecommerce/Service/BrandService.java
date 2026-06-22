@@ -2,8 +2,8 @@ package com.pranta.ecommerce.Service;
 
 import java.util.List;
 
-import com.pranta.ecommerce.Dto.BrandRequestDto;
-import com.pranta.ecommerce.Dto.BrandResponseDto;
+import com.pranta.ecommerce.Dto.Request.BrandRequestDto;
+import com.pranta.ecommerce.Dto.Response.BrandResponseDto;
 
 public interface BrandService {
     

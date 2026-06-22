@@ -2,7 +2,7 @@ package com.pranta.ecommerce.Service;
 
 import java.util.List;
 
-import com.pranta.ecommerce.Dto.OrderResponseDto;
+import com.pranta.ecommerce.Dto.Response.OrderResponseDto;
 import com.pranta.ecommerce.Entity.Order.OrderStatus;
 
 public interface OrderService {
