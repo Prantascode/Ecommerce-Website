@@ -1,6 +1,7 @@
 package com.pranta.ecommerce.Service;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.pranta.ecommerce.Dto.Request.ProductRequestDto;
 import com.pranta.ecommerce.Dto.Response.ProductResponseDto;
@@ -9,30 +10,31 @@ import com.pranta.ecommerce.Entity.Brand;
 import com.pranta.ecommerce.Entity.Category;
 
 public interface ProductService {
+
     
     ProductResponseDto createProduct(ProductRequestDto dto);
     
-    List<ProductResponseDto> getAllProducts();
+    Page<ProductResponseDto> getAllProducts(Pageable pageable);
     
     ProductResponseDto getProductById(Long id);
     
     ProductResponseDto getProductByName(String name);
     
-    List<ProductResponseDto> getProductByPriceRange(double minPrice, double maxPrice);
+    Page<ProductResponseDto> getProductByPriceRange(double minPrice, double maxPrice,Pageable pageable);
     
-    List<ProductResponseDto> getProductByCategory(Category category);
+    Page<ProductResponseDto> getProductByCategory(Category category,Pageable pageable);
     
-    List<ProductResponseDto> getProductByBrand(Brand brand);
+    Page<ProductResponseDto> getProductByBrand(Brand brand,Pageable pageable);
     
-    List<ProductResponseDto> getProductsByColor(String color);
+    Page<ProductResponseDto> getProductsByColor(String color,Pageable pageable);
     
-    List<ProductResponseDto> getOutOfStockProducts();
+    Page<ProductResponseDto> getOutOfStockProducts(Pageable pageable);
     
-    List<ProductResponseDto> getDiscountedProducts();
+    Page<ProductResponseDto> getDiscountedProducts(Pageable pageable);
     
     ProductStockResponseDto getStockByProduct(Long productId);
     
-    List<ProductResponseDto> getStockLimitResponse(int threshold);
+    Page<ProductResponseDto> getStockLimitResponse(int threshold,Pageable pageable);
     
     ProductResponseDto updateProduct(Long id, ProductRequestDto dto);
     
