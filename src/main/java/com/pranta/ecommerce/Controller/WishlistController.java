@@ -17,18 +17,28 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pranta.ecommerce.Dto.Request.WishlistRequestDto;
 import com.pranta.ecommerce.Dto.Response.WishlistResponseDto;
-import com.pranta.ecommerce.Service.WishlistService;
+import com.pranta.ecommerce.Service.Impl.WishlistServiceImpl;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/wishlist")
+@Tag(
+    name = "Wishlist",
+    description = "Wishlist Management API's"
+)
 public class WishlistController {
     
-    private final WishlistService wishlistService;
+    private final WishlistServiceImpl wishlistService;
 
+    @Operation(
+        summary = "Create wishlist",
+        description = "Anyone can add product to their wishlist"
+    )
     @PostMapping("/{productId}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<WishlistResponseDto> createWishlist(Authentication authentication,@Valid @RequestBody WishlistRequestDto request,@PathVariable Long productId){
@@ -40,6 +50,10 @@ public class WishlistController {
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
+    @Operation(
+        summary = "Get Wishlist By Id",
+        description = "Anyone can get their own wishlist by id"
+    )
     @GetMapping("/{wishlistId}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<WishlistResponseDto> getWishlist(Long wishlistId,Authentication authentication){
@@ -50,6 +64,10 @@ public class WishlistController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @Operation(
+        summary = "Get All wishlist",
+        description = "Anyone can get all their own wishlist"
+    )
     @GetMapping()
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<WishlistResponseDto>> getAllWishlists(Authentication authentication){
@@ -60,6 +78,10 @@ public class WishlistController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @Operation(
+        summary = "Update wishlist by Product Id",
+        description = "Anyone can update their own wishlist by product id"
+    )
     @PutMapping("/{productId}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<WishlistResponseDto> updateWishlist(
@@ -74,6 +96,10 @@ public class WishlistController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(
+        summary = "Delete wishlist by Wishlist Id",
+        description = "Anyone can delete their own wishlist by wishlist id"
+    )
     @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/{wishlistId}")
     public ResponseEntity<String> deleteWishlist(
