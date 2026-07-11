@@ -1,29 +1,28 @@
 package com.pranta.ecommerce.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.pranta.ecommerce.Entity.Brand;
 import com.pranta.ecommerce.Entity.Category;
 import com.pranta.ecommerce.Entity.Product;
 
-
-public interface ProductRepository extends JpaRepository<Product,Long>{
+public interface ProductRepository extends JpaRepository<Product, Long> {
 
     Optional<Product> findByName(String name);
 
-    List<Product> findByCategory(Category category);
+    Page<Product> findByCategory(Category category, Pageable pageable);
 
-    List<Product> findByStock(int stock);
+    Page<Product> findByStock(int stock, Pageable pageable);
 
-    List<Product> findByBrand(Brand brand);
+    Page<Product> findByBrand(Brand brand, Pageable pageable);
 
-    List<Product> findByColor(String color);
+    Page<Product> findByColor(String color, Pageable pageable);
 
-    List<Product> findByStockLessThanEqual(int threshold);
+    Page<Product> findByStockLessThanEqual(int threshold, Pageable pageable);
 
-    List<Product> findByPriceBetween(double minPrice, double maxPrice);
-
+    Page<Product> findByPriceBetween(double minPrice, double maxPrice, Pageable pageable);
 }
