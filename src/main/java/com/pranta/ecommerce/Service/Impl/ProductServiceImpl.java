@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.pranta.ecommerce.Dto.Request.ProductRequestDto;
@@ -68,19 +70,12 @@ public class ProductServiceImpl implements ProductService {
         return mapToResponse(savedProduct);
     }
 
+
     @Override
-    public List<ProductResponseDto> getAllProducts() {
-        log.debug("Fetching all products");
-        List<Product> products = productRepository.findAll();
+    public Page<ProductResponseDto> getAllProducts(Pageable pageable) {
         
-        if (products.isEmpty()) {
-            log.warn("No products found in the database");
-            return Collections.emptyList();
-        }
-        
-        return products.stream()
-                        .map(this::mapToResponse)
-                        .collect(Collectors.toList());
+        log.debug("Fatching product page {} of size {}" + pageable.getPageNumber(), pageable.getPageSize());
+        return productRepository.findAll(pageable).map(this::mapToResponse);
     }
 
     @Override
@@ -102,92 +97,50 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductResponseDto> getProductByPriceRange(double minPrice, double maxPrice) {
+    public Page<ProductResponseDto> getProductByPriceRange(double minPrice, double maxPrice,Pageable pageable) {
+
         log.debug("Fetching products by price range: {} - {}", minPrice, maxPrice);
-        List<Product> products = productRepository.findByPriceBetween(minPrice, maxPrice);
-
-        if (products.isEmpty()) {
-            log.warn("No products found in price range: {} - {}", minPrice, maxPrice);
-            return Collections.emptyList();
-        }
-        return products.stream()
-                .map(this::mapToResponse)
-                .toList();
+        return productRepository.findByPriceBetween(minPrice, maxPrice, pageable).map(this::mapToResponse);
     }
 
     @Override
-    public List<ProductResponseDto> getProductByCategory(Category category) {
+    public Page<ProductResponseDto> getProductByCategory(Category category,Pageable pageable) {
         log.debug("Fetching products by category: {}", category.getName());
-        List<Product> products = productRepository.findByCategory(category);
         
-        if (products.isEmpty()) {
-            log.warn("No products found for category: {}", category.getName());
-            return Collections.emptyList();
-        }
-        
-        return products.stream()
-                    .map(this::mapToResponse)
-                    .collect(Collectors.toList());
+        return productRepository.findByCategory(category, pageable).map(this::mapToResponse);
     }
+        
 
     @Override
-    public List<ProductResponseDto> getProductByBrand(Brand brand) {
+    public Page<ProductResponseDto> getProductByBrand(Brand brand,Pageable pageable) {
         log.debug("Fetching products by brand: {}", brand.getName());
-        List<Product> products = productRepository.findByBrand(brand);
         
-        if (products.isEmpty()) {
-            log.warn("No products found for brand: {}", brand.getName());
-            return Collections.emptyList();
-        }
-        
-        return products.stream()
-                    .map(this::mapToResponse)
-                    .collect(Collectors.toList());
+        return productRepository.findByBrand(brand,pageable).map(this::mapToResponse);
     }
 
     @Override
-    public List<ProductResponseDto> getProductsByColor(String color) {
+    public Page<ProductResponseDto> getProductsByColor(String color, Pageable pageable) {
         log.debug("Fetching products by color: {}", color);
-        List<Product> products = productRepository.findByColor(color);
                     
-        if (products.isEmpty()) {
-            log.warn("No products found with color: {}", color);
-            return Collections.emptyList();
-        }
-        return products.stream()
-                .map(this::mapToResponse)
-                .toList();
+        return productRepository.findByColor(color,pageable).map(this::mapToResponse);
     }
 
     @Override
-    public List<ProductResponseDto> getOutOfStockProducts() {
-        log.debug("Fetching out of stock products");
-        List<Product> products = productRepository.findByStock(0);
+    public Page<ProductResponseDto> getOutOfStockProducts(Pageable pageable) {
+         Page<Product> products = productRepository.findByStock(0, pageable);
 
         if (products.isEmpty()) {
-            log.warn("No out of stock products found");
-            return Collections.emptyList();
+            throw new ResourceNotFoundException("No out-of-stock products found");
         }
-        return products.stream()
-                .map(this::mapToResponse)
-                .toList();
+
+        return products.map(this::mapToResponse);
     }
 
     @Override
-    public List<ProductResponseDto> getDiscountedProducts() {
+    public Page<ProductResponseDto> getDiscountedProducts(Pageable pageable) {
         log.debug("Fetching products with active discounts");
-        List<Product> products = productRepository.findAll();
         
-        List<ProductResponseDto> discountedProducts = products.stream()
-                .filter(this::hasActiveDiscount)
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
-        
-        if (discountedProducts.isEmpty()) {
-            log.warn("No products with active discounts found");
-        }
-        
-        return discountedProducts;
+        return productRepository.findAll(pageable).map(this::mapToResponse);
     }
 
     @Override
@@ -205,18 +158,17 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public List<ProductResponseDto> getStockLimitResponse(int threshold) {
+    public Page<ProductResponseDto> getStockLimitResponse(int threshold,Pageable pageable) {
         log.debug("Fetching products with stock less than or equal to: {}", threshold);
-        List<Product> products = productRepository.findByStockLessThanEqual(threshold);
+        Page<Product> products = productRepository.findByStockLessThanEqual(threshold,pageable);
 
         if (products.isEmpty()) {
             log.warn("No products found with stock <= {}", threshold);
-            return Collections.emptyList();
+            throw new ResourceNotFoundException("There are no low stock products");
         }
 
-        return products.stream()
-                    .map(this::mapToResponse)
-                    .toList();
+        return products.map(this::mapToResponse);
+                    
     }
 
     @Override
@@ -400,4 +352,5 @@ public class ProductServiceImpl implements ProductService {
         return product.getDiscounts().stream()
                 .anyMatch(Discount::isDiscountCurrentlyActive);
     }
+   
 }
