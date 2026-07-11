@@ -19,6 +19,8 @@ import com.pranta.ecommerce.Dto.Request.ReviewUpdateRequestDto;
 import com.pranta.ecommerce.Dto.Response.ReviewResponseDto;
 import com.pranta.ecommerce.Service.ReviewService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -27,9 +29,17 @@ import org.springframework.web.bind.annotation.PutMapping;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/review")
+@Tag(
+    name = "Product Review",
+    description = "Product Review Management API's"
+)
 public class ReviewController {
     private final ReviewService reviewService;
 
+    @Operation(
+        summary = "Place Review using Product Id",
+        description = "Anyone can review ordered product by product id"
+    )
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/{productId}")
     public ResponseEntity<ReviewResponseDto>  placeReview(Authentication authentication,@PathVariable Long productId,@Valid @RequestBody ReviewRequestDto requestDto){
@@ -39,6 +49,10 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Operation(
+        summary = "Get Review using Product Id",
+        description = "Anyone can get review ordered product by product id"
+    )
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/myReview/{productId}")
     public ResponseEntity<ReviewResponseDto> getMyReviewByProduct(Authentication authentication,@PathVariable Long productId){
@@ -49,6 +63,10 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.FOUND).body(response);
     }
 
+    @Operation(
+        summary = "Get All Reviews of Specific product using Product Id",
+        description = "Anyone can get all reviews of product by product id"
+    )
     @GetMapping("/allReviews/{productId}")
     public ResponseEntity<List<ReviewResponseDto>> getAllReviewsOfProduct(@PathVariable Long productId){
 
@@ -57,7 +75,10 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.FOUND).body(response);
     }
 
-
+    @Operation(
+        summary = "Update Review using Product Id",
+        description = "Anyone can update own review ordered product by product id"
+    )
     @PreAuthorize("hasRole('USER')")
     @PutMapping("/edit/{productId}")
     public ResponseEntity<ReviewResponseDto> editTheReview(@PathVariable Long productId,@Valid @RequestBody ReviewUpdateRequestDto requestDto,Authentication authentication) {
@@ -68,6 +89,10 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 
+    @Operation(
+        summary = "Delete Review using Product Id",
+        description = "Anyone can delete their own review ordered product by product id"
+    )
     @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/{productId}")
     public ResponseEntity<String> deleteTheReview(Authentication authentication,@PathVariable Long productId){
@@ -78,6 +103,5 @@ public class ReviewController {
         return ResponseEntity.ok("Review is deleted sucessfully");
 
     }
-
 
 }
