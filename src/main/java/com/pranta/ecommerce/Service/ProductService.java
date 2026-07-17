@@ -31,6 +31,8 @@ public interface ProductService {
     Page<ProductResponseDto> getOutOfStockProducts(Pageable pageable);
     
     Page<ProductResponseDto> getDiscountedProducts(Pageable pageable);
+
+    Page<ProductResponseDto> getAvailableProducts(Pageable pageable);
     
     ProductStockResponseDto getStockByProduct(Long productId);
     
