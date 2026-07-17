@@ -1,9 +1,7 @@
 package com.pranta.ecommerce.Controller;
 
-import java.util.List;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +23,6 @@ import com.pranta.ecommerce.Dto.Response.ProductResponseDto;
 import com.pranta.ecommerce.Dto.Response.ProductStockResponseDto;
 import com.pranta.ecommerce.Entity.Brand;
 import com.pranta.ecommerce.Entity.Category;
-import com.pranta.ecommerce.Repository.ProductRepository;
 import com.pranta.ecommerce.Service.ProductService;
 import com.pranta.ecommerce.Util.PaginationHelper;
 
@@ -175,10 +172,16 @@ public class ProductController {
         description = "Anyone can get discounted product"
     )
     @GetMapping("/discounted")
-    public ResponseEntity<PageResponseDto<ProductResponseDto>> getDiscountedProducts(Pageable pageable) {
-        Page<ProductResponseDto> products = productService.getDiscountedProducts(pageable);
-        return ResponseEntity.ok(PageResponseDto.from(products));
-    }
+    public ResponseEntity<PageResponseDto<ProductResponseDto>> getDiscountedProducts(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir
+        ) {
+            Pageable pageable = paginationHelper.buildPageable(page, size, sortBy, sortDir);
+            Page<ProductResponseDto> products = productService.getDiscountedProducts(pageable);
+            return ResponseEntity.ok(PageResponseDto.from(products));
+        }
 
      @Operation(
         summary = "Get available Product",
@@ -186,7 +189,6 @@ public class ProductController {
     )
     @GetMapping("/available")
     public ResponseEntity<PageResponseDto<ProductResponseDto>> getAvailableProducts(
-            @RequestParam(required = false, defaultValue = "false") boolean onSale,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
@@ -194,25 +196,10 @@ public class ProductController {
         
         Pageable pageable = paginationHelper.buildPageable(page, size, sortBy, sortDir);
         
-       Page<ProductResponseDto> products =
-            productService.getAllProducts(pageable);
+        Page<ProductResponseDto> products =
+            productService.getAvailableProducts(pageable);
 
-    List<ProductResponseDto> filteredProducts =
-            products.getContent()
-                    .stream()
-                    .filter(ProductResponseDto::isAvailable)
-                    .filter(product -> !onSale || product.isHasActiveDiscount())
-                    .toList();
-
-    Page<ProductResponseDto> filteredPage =
-            new PageImpl<>(
-                    filteredProducts,
-                    pageable,
-                    filteredProducts.size()
-            );
-                
-        
-        return ResponseEntity.ok(PageResponseDto.from(filteredPage));
+        return ResponseEntity.ok(PageResponseDto.from(products));
     }
 
      @Operation(
