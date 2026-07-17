@@ -140,7 +140,24 @@ public class ProductServiceImpl implements ProductService {
     public Page<ProductResponseDto> getDiscountedProducts(Pageable pageable) {
         log.debug("Fetching products with active discounts");
         
-        return productRepository.findAll(pageable).map(this::mapToResponse);
+        Page<Product> products = productRepository.findAvailableProductsWithActiveDiscount(pageable);
+
+        if (products.isEmpty()) {
+            throw new ResourceNotFoundException("No Discounted Product Available");
+        }
+        return products.map(this::mapToResponse);
+    }
+
+    @Override
+    public Page<ProductResponseDto> getAvailableProducts(Pageable pageable) {
+        log.debug("Fetching Available products");
+        
+        Page<Product> products = productRepository.findByAvailableProduct(pageable);
+
+        if (products.isEmpty()) {
+            throw new ResourceNotFoundException("No Product Available");
+        }
+        return products.map(this::mapToResponse);
     }
 
     @Override
@@ -339,18 +356,6 @@ public class ProductServiceImpl implements ProductService {
         
         // Subtract discount from original price
         return originalPrice.subtract(discountAmount).setScale(2, RoundingMode.HALF_UP);
-    }
-
-    /**
-     * Check if a product has any active discount
-     */
-    private boolean hasActiveDiscount(Product product) {
-        if (product.getDiscounts() == null || product.getDiscounts().isEmpty()) {
-            return false;
-        }
-        
-        return product.getDiscounts().stream()
-                .anyMatch(Discount::isDiscountCurrentlyActive);
     }
    
 }
