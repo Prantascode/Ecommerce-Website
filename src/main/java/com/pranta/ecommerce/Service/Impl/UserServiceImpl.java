@@ -1,10 +1,8 @@
 package com.pranta.ecommerce.Service.Impl;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,22 +34,18 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
      
     @Override
-    public List<UserResponseDto> getAllUsers() {
-        List<User> users = userRepository.findAll();
+    public Page<UserResponseDto> getAllUsers(Pageable pageable) {
 
-        if (users.isEmpty()) {
-            return Collections.emptyList();
-        }
+        log.debug("Fatching User page {} of size {}" , pageable.getPageNumber(), pageable.getPageSize());
 
-        return users.stream()
-                .map(user -> {
-                    Customer customer = null;
-                    if (user.getRole() != User.Role.ADMIN) {
-                        customer = customerRepository.findByUser(user).orElse(null);
-                    }
-                    return mapToUserResponseDto(user, customer);
-                })
-                .collect(Collectors.toList());
+        return userRepository.findAll(pageable).map(user ->{
+
+            Customer customer = null;
+            if (user.getRole() != User.Role.ADMIN) {
+                 customer = customerRepository.findByUser(user).orElse(null);
+            }
+            return mapToUserResponseDto(user, customer);
+        });
     }
 
     @Override
@@ -85,24 +79,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserResponseDto> getUserByRole(User.Role role){
-        List<User> users = userRepository.findByRole(role);
+    public Page<UserResponseDto> getUserByRole(User.Role role,Pageable pageable){
         
-        if (users.isEmpty()) {
-            return Collections.emptyList();
-        }
-        
-        return users.stream()
-                .map(user -> {
-                    // If role is ADMIN, don't fetch customer
-                    Customer customer = null;
-                    if (role != User.Role.ADMIN) {
-                        customer = customerRepository.findByUser(user)
-                                .orElseThrow(() -> new ResourceNotFoundException("Customer not found for user: " + user.getEmail()));
-                    }
-                    return mapToUserResponseDto(user, customer);
-                })
-                .collect(Collectors.toList());
+        log.debug("Fatching active user page {} of size {}" , pageable.getPageNumber(), pageable.getPageSize());
+
+        return userRepository.findByRole(role, pageable).map(user -> {
+        Customer customer = null;
+            if (user.getRole() != User.Role.ADMIN) {
+                 customer = customerRepository.findByUser(user).orElse(null);
+            }            return mapToUserResponseDto(user, customer);
+        });
     }
 
     @Override
@@ -180,24 +166,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserResponseDto> getActiveAndDeactiveUser(Boolean active){
-        List<User> users = userRepository.findByActive(active);
+    public Page<UserResponseDto> getActiveAndDeactiveUser(Boolean active,Pageable pageable){
 
-        if (users.isEmpty()) {
-            return Collections.emptyList();
-        }
-        
-        return users.stream()
-                .map(user -> {
-                    // Only fetch customer for non-admin users
-                    Customer customer = null;
-                    if (user.getRole() != User.Role.ADMIN) {
-                        Optional<Customer> optionalCustomer = customerRepository.findByUser(user);
-                        customer = optionalCustomer.orElse(null);
-                    }
-                    return mapToUserResponseDto(user, customer);
-                })
-                .collect(Collectors.toList());         
+        return userRepository.findByActive(active,pageable).map(User -> {
+            Customer customer = customerRepository.findByUser(User).orElse(null);
+            return mapToUserResponseDto(User, customer);
+        });
+
+               
     }
     
     // Single mapping method - always returns UserResponseDto

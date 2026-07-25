@@ -1,21 +1,24 @@
 package com.pranta.ecommerce.Controller;
 
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pranta.ecommerce.Dto.Request.PasswordUpdateDto;
 import com.pranta.ecommerce.Dto.Request.UpdateEmailDto;
+import com.pranta.ecommerce.Dto.Response.PageResponseDto;
 import com.pranta.ecommerce.Dto.Response.UserResponseDto;
 import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Service.UserService;
+import com.pranta.ecommerce.Util.PaginationHelper;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,14 +39,25 @@ public class UserController {
     
     private final UserService userService;
 
+    private final PaginationHelper paginationHelper;
+
     @Operation(
         summary = "Get users",
         description = "Get all users"
     )
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<PageResponseDto<UserResponseDto>> getAllUsers(
+        @RequestParam(defaultValue = "1") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(defaultValue = "id") String sortBy,
+        @RequestParam(defaultValue = "asc") String sortDir
+    ) {
+        Pageable pageable = paginationHelper.buildPageable(page, size, sortBy, sortDir);
+
+        Page<UserResponseDto> users = userService.getAllUsers(pageable);
+
+        return ResponseEntity.ok(PageResponseDto.from(users));
     }
 
     @Operation(
@@ -72,8 +86,16 @@ public class UserController {
     )
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/role/{role}")
-    public ResponseEntity<List<UserResponseDto>> getUserByUserRole(@PathVariable User.Role role){
-        return ResponseEntity.ok(userService.getUserByRole(role));
+    public ResponseEntity<PageResponseDto<UserResponseDto>> getUserByUserRole(@PathVariable User.Role role,
+        @RequestParam(defaultValue = "1") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(defaultValue = "id") String sortBy,
+        @RequestParam(defaultValue = "asc") String sortDir
+    ){
+        Pageable pageable = paginationHelper.buildPageable(page, size, sortBy, sortDir);
+        Page<UserResponseDto> users = userService.getUserByRole(role, pageable);
+
+        return ResponseEntity.ok(PageResponseDto.from(users));
     }
 
     @Operation(
@@ -138,8 +160,15 @@ public class UserController {
     )
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/active/{active}")
-    public ResponseEntity<List<UserResponseDto>> getActiveAndDeactiveUsers(@PathVariable Boolean active){
-        
-        return ResponseEntity.ok(userService.getActiveAndDeactiveUser(active));
+    public ResponseEntity<PageResponseDto<UserResponseDto>> getActiveAndDeactiveUsers(@PathVariable Boolean active,
+        @RequestParam(defaultValue = "1") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(defaultValue = "id") String sortBy,
+        @RequestParam(defaultValue = "asc") String sortDir
+    ){
+        Pageable pageable = paginationHelper.buildPageable(page, size, sortBy, sortDir);
+        Page<UserResponseDto> users = userService.getActiveAndDeactiveUser(active, pageable);
+
+        return ResponseEntity.ok(PageResponseDto.from(users));
     }
 }

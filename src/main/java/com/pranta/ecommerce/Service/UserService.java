@@ -1,6 +1,8 @@
 package com.pranta.ecommerce.Service;
 
-import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.pranta.ecommerce.Dto.Request.UpdateEmailDto;
 import com.pranta.ecommerce.Dto.Response.UserResponseDto;
@@ -8,13 +10,13 @@ import com.pranta.ecommerce.Entity.User;
 
 public interface UserService {
     
-    List<UserResponseDto> getAllUsers();
+    Page<UserResponseDto> getAllUsers(Pageable pageable);
     
     UserResponseDto getUserById(Long id);
     
     UserResponseDto getUserByEmail(String email);
     
-    List<UserResponseDto> getUserByRole(User.Role role);
+    Page<UserResponseDto> getUserByRole(User.Role role,Pageable pageable);
     
     UserResponseDto myProfile(String email);
     
@@ -26,5 +28,5 @@ public interface UserService {
     
     void activateUser(Long userId);
     
-    List<UserResponseDto> getActiveAndDeactiveUser(Boolean active);
+    Page<UserResponseDto> getActiveAndDeactiveUser(Boolean active,Pageable pageable);
 }
