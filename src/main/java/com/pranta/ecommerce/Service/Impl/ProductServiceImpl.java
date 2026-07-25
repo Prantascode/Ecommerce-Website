@@ -19,6 +19,7 @@ import com.pranta.ecommerce.Entity.Category;
 import com.pranta.ecommerce.Entity.Discount;
 import com.pranta.ecommerce.Entity.Product;
 import com.pranta.ecommerce.Exceptions.DuplicateResourceException;
+import com.pranta.ecommerce.Exceptions.InvalidRequestException;
 import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
 import com.pranta.ecommerce.Repository.BrandRepository;
 import com.pranta.ecommerce.Repository.CategoryRepository;
@@ -74,7 +75,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<ProductResponseDto> getAllProducts(Pageable pageable) {
         
-        log.debug("Fatching product page {} of size {}" + pageable.getPageNumber(), pageable.getPageSize());
+        log.debug("Fatching product page {} of size {}" , pageable.getPageNumber(), pageable.getPageSize());
         return productRepository.findAll(pageable).map(this::mapToResponse);
     }
 
@@ -97,25 +98,25 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductResponseDto> getProductByPriceRange(double minPrice, double maxPrice,Pageable pageable) {
+    public Page<ProductResponseDto> getProductByPriceRange(BigDecimal minPrice, BigDecimal maxPrice,Pageable pageable) {
 
         log.debug("Fetching products by price range: {} - {}", minPrice, maxPrice);
         return productRepository.findByPriceBetween(minPrice, maxPrice, pageable).map(this::mapToResponse);
     }
 
     @Override
-    public Page<ProductResponseDto> getProductByCategory(Category category,Pageable pageable) {
-        log.debug("Fetching products by category: {}", category.getName());
+    public Page<ProductResponseDto> getProductByCategory(Long categoryId,Pageable pageable) {
+        log.debug("Fetching products by category: {}", categoryId);
         
-        return productRepository.findByCategory(category, pageable).map(this::mapToResponse);
+        return productRepository.findByCategoryId(categoryId, pageable).map(this::mapToResponse);
     }
         
 
     @Override
-    public Page<ProductResponseDto> getProductByBrand(Brand brand,Pageable pageable) {
-        log.debug("Fetching products by brand: {}", brand.getName());
+    public Page<ProductResponseDto> getProductByBrand(Long brandId,Pageable pageable) {
+        log.debug("Fetching products by brand: {}", brandId);
         
-        return productRepository.findByBrand(brand,pageable).map(this::mapToResponse);
+        return productRepository.findByBrandId(brandId,pageable).map(this::mapToResponse);
     }
 
     @Override
@@ -130,7 +131,7 @@ public class ProductServiceImpl implements ProductService {
          Page<Product> products = productRepository.findByStock(0, pageable);
 
         if (products.isEmpty()) {
-            throw new ResourceNotFoundException("No out-of-stock products found");
+            return Page.empty(pageable);
         }
 
         return products.map(this::mapToResponse);
@@ -231,8 +232,12 @@ public class ProductServiceImpl implements ProductService {
         
         Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
-    
+        
+        if (quantity < 0) {
+            throw new InvalidRequestException("Quantity must be Positive");
+        }
         product.setStock(quantity);
+        
         Product savedProduct = productRepository.save(product);
         log.info("Stock updated successfully for product id: {}", productId);
 

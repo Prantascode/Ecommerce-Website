@@ -1,6 +1,8 @@
 package com.pranta.ecommerce.Controller;
 
 
+import java.math.BigDecimal;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -21,8 +23,6 @@ import com.pranta.ecommerce.Dto.Request.ProductRequestDto;
 import com.pranta.ecommerce.Dto.Response.PageResponseDto;
 import com.pranta.ecommerce.Dto.Response.ProductResponseDto;
 import com.pranta.ecommerce.Dto.Response.ProductStockResponseDto;
-import com.pranta.ecommerce.Entity.Brand;
-import com.pranta.ecommerce.Entity.Category;
 import com.pranta.ecommerce.Service.ProductService;
 import com.pranta.ecommerce.Util.PaginationHelper;
 
@@ -101,8 +101,8 @@ public class ProductController {
     )
     @GetMapping("/price/search")
     public ResponseEntity<PageResponseDto<ProductResponseDto>> getProductByPriceRange(
-            @RequestParam double minPrice,
-            @RequestParam double maxPrice,
+            @RequestParam BigDecimal minPrice,
+            @RequestParam BigDecimal maxPrice,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
@@ -119,15 +119,15 @@ public class ProductController {
         summary = "Get Product by category search",
         description = "Anyone can get product by category search"
     )
-    @GetMapping("/category/search")
+    @GetMapping("/category/{categoryId}")
     public ResponseEntity<PageResponseDto<ProductResponseDto>> getProductByCategory(
-            @RequestParam Category category,
+            @PathVariable Long categoryId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDir) {
                 Pageable pageable = paginationHelper.buildPageable(page, size, sortBy, sortDir);
-                Page<ProductResponseDto> products = productService.getProductByCategory(category,pageable);
+                Page<ProductResponseDto> products = productService.getProductByCategory(categoryId,pageable);
         return ResponseEntity.ok(PageResponseDto.from(products));
     }
 
@@ -135,9 +135,9 @@ public class ProductController {
         summary = "Get Product by barnd",
         description = "Anyone can get product by brand"
     )
-    @GetMapping("/brand/search")
+    @GetMapping("/brand/{brandId}")
     public ResponseEntity<PageResponseDto<ProductResponseDto>> getProductByBrand(
-            @RequestParam Brand brand,
+            @PathVariable Long brandId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
@@ -145,7 +145,7 @@ public class ProductController {
 
                 Pageable pageable = paginationHelper.buildPageable(page, size, sortBy, sortDir);
 
-                Page<ProductResponseDto> products = productService.getProductByBrand(brand,pageable);
+                Page<ProductResponseDto> products = productService.getProductByBrand(brandId,pageable);
         return ResponseEntity.ok(PageResponseDto.from(products));
     }
 

@@ -1,13 +1,13 @@
 package com.pranta.ecommerce.Service;
 
+import java.math.BigDecimal;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.pranta.ecommerce.Dto.Request.ProductRequestDto;
 import com.pranta.ecommerce.Dto.Response.ProductResponseDto;
 import com.pranta.ecommerce.Dto.Response.ProductStockResponseDto;
-import com.pranta.ecommerce.Entity.Brand;
-import com.pranta.ecommerce.Entity.Category;
 
 public interface ProductService {
 
@@ -20,11 +20,11 @@ public interface ProductService {
     
     ProductResponseDto getProductByName(String name);
     
-    Page<ProductResponseDto> getProductByPriceRange(double minPrice, double maxPrice,Pageable pageable);
+    Page<ProductResponseDto> getProductByPriceRange(BigDecimal minPrice, BigDecimal maxPrice,Pageable pageable);
     
-    Page<ProductResponseDto> getProductByCategory(Category category,Pageable pageable);
+    Page<ProductResponseDto> getProductByCategory(Long categoryId,Pageable pageable);
     
-    Page<ProductResponseDto> getProductByBrand(Brand brand,Pageable pageable);
+    Page<ProductResponseDto> getProductByBrand(Long brandId,Pageable pageable);
     
     Page<ProductResponseDto> getProductsByColor(String color,Pageable pageable);
     
