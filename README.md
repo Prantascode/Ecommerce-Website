@@ -1,6 +1,6 @@
 # E-Commerce Management System
 
-A secure and scalable E-Commerce backend application built using Java, Spring Boot, Spring Security, JWT, MySQL, and SSLCommerz. The system provides user authentication, product management, shopping cart functionality, order processing, and secure online payment integration.
+A secure and scalable E-Commerce backend application built using Java, Spring Boot, Spring Security, JWT, MySQL, and SSLCommerz. The system provides user authentication, product management,pagination, shopping cart functionality, order processing, and secure online payment integration.
 
 ## Features
 
@@ -113,8 +113,6 @@ http://localhost:8080/swagger-ui/index.html
 ## Future Improvements
 
 * Email Notifications
-* Product Reviews and Ratings
-* Wishlist Functionality
 * Inventory Management
 * Docker Deployment
 
