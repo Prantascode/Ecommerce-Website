@@ -29,6 +29,8 @@ public class Discount {
 
     private Boolean active = true;
 
+    private Boolean manuallyDisabled = false;
+
     private LocalDateTime discountStartDate;
     private LocalDateTime discountEndDate;
 

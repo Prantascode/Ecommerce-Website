@@ -13,9 +13,13 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 @Entity
 @Data
+@ToString(exclude = "items")
+@EqualsAndHashCode(exclude = "items")
 @AllArgsConstructor
 @NoArgsConstructor
 public class Cart {

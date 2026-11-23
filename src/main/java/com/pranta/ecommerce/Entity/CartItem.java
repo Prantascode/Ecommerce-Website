@@ -36,5 +36,5 @@ public class CartItem {
 
     private BigDecimal price;
 
-    private BigDecimal TotalPrice;
+    private BigDecimal totalPrice;
 }
