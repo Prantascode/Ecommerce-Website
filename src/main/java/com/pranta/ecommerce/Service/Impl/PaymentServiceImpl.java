@@ -95,9 +95,9 @@ public class PaymentServiceImpl implements PaymentService {
 
                 log.info("SSLCommerz payment initiated successfully for order: {}", orderId);
                 return new PaymentResponseDto(
-                    "SUCCESS", 
-                    gatewayUrl, 
+                    "SUCCESS",
                     sessionKey,
+                    gatewayUrl,
                     "Open the gatewayUrl in a browser to complete payment"
                 );
             }
@@ -159,10 +159,10 @@ public class PaymentServiceImpl implements PaymentService {
         var customer = order.getCustomer();
         var user = customer.getUser();
 
-        // Get backend base URL from config or use default
-        String backendBase = sslCommerzConfig.getBaseUrl() != null 
-                ? sslCommerzConfig.getBaseUrl() 
-                : "https://your-ngrok-url.ngrok-free.app/api/payment";
+        // Get backend callback URL from config or use localhost default
+        String callbackBase = (sslCommerzConfig.getCallbackUrl() != null && !sslCommerzConfig.getCallbackUrl().isBlank())
+                ? sslCommerzConfig.getCallbackUrl() 
+                : "http://localhost:9090/api/payments";
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         
@@ -176,9 +176,9 @@ public class PaymentServiceImpl implements PaymentService {
         params.add("tran_id", transactionId);
         
         // URLs
-        params.add("success_url", backendBase + "/success");
-        params.add("fail_url", backendBase + "/fail");
-        params.add("cancel_url", backendBase + "/cancel");
+        params.add("success_url", callbackBase + "/success");
+        params.add("fail_url", callbackBase + "/fail");
+        params.add("cancel_url", callbackBase + "/cancel");
         
         // Customer details
         params.add("cus_name", user.getName());

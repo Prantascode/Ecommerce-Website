@@ -15,6 +15,7 @@ import com.pranta.ecommerce.Entity.OrderItem;
 import com.pranta.ecommerce.Entity.Product;
 import com.pranta.ecommerce.Entity.Review;
 import com.pranta.ecommerce.Entity.User;
+import com.pranta.ecommerce.Exceptions.DuplicateResourceException;
 import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
 import com.pranta.ecommerce.Exceptions.UnauthorizedAccessException;
 import com.pranta.ecommerce.Repository.CustomerRepository;
@@ -25,6 +26,7 @@ import com.pranta.ecommerce.Repository.ReviewRepository;
 import com.pranta.ecommerce.Repository.UserRepository;
 import com.pranta.ecommerce.Service.ReviewService;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,6 +43,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final OrderItemRepository orderItemRepository;  
 
     @Override
+    @Transactional
     public ReviewResponseDto reviewOrderedProduct(String email, Long productId, ReviewRequestDto requestDto) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -52,7 +55,7 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         if (reviewRepository.existsByCustomerAndProduct(customer, product)) {
-            throw new RuntimeException("You have already reviewed this product");
+            throw new DuplicateResourceException("You have already reviewed this product");
         }
 
         boolean verifiedPurchase = isVerifiedPurchase(customer, product);
@@ -81,12 +84,11 @@ public class ReviewServiceImpl implements ReviewService {
         Customer customer = customerRepository.findByUser(user)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
-        Review review = reviewRepository.findByProductId(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Review not found"));
-        
-        if (!review.getCustomer().getId().equals(customer.getId())) {
-            throw new UnauthorizedAccessException("Unauthorized Access: You are not eligible for this request");
-        }
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+
+        Review review = reviewRepository.findByCustomerAndProduct(customer, product)
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found for this product"));
 
         return mapToResponseDto(review);
     }
@@ -105,21 +107,20 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
+    @Transactional
     public ReviewResponseDto editReview(Long productId, String email, ReviewUpdateRequestDto requestDto) {
-        Review review = reviewRepository.findByProductId(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Review not found"));
-        
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Customer customer = customerRepository.findByUser(user)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
-        if (!review.getCustomer().getId().equals(customer.getId())) {
-            throw new UnauthorizedAccessException("Only valid customer can update the review");
-        }
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+
+        Review review = reviewRepository.findByCustomerAndProduct(customer, product)
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found for this product"));
         
-        // Fix: Swap the conditions - rating should update rating, comment should update comment
         if (requestDto.getRating() != null) {
             review.setRating(requestDto.getRating());
         }
@@ -132,10 +133,13 @@ public class ReviewServiceImpl implements ReviewService {
 
         Review updatedReview = reviewRepository.save(review);
 
+        updateProductAverageRating(product);
+
         return mapToResponseDto(updatedReview);
     }
 
     @Override
+    @Transactional
     public void deleteReview(Long productId, String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -143,15 +147,12 @@ public class ReviewServiceImpl implements ReviewService {
         Customer customer = customerRepository.findByUser(user)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
-        Review review = reviewRepository.findByProductId(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Review not found"));
-        
-        if (!review.getCustomer().getId().equals(customer.getId())) {
-            throw new UnauthorizedAccessException("Invalid customer can't delete review");
-        }
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
-        Product product = review.getProduct();
-    
+        Review review = reviewRepository.findByCustomerAndProduct(customer, product)
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found for this product"));
+
         reviewRepository.delete(review);
 
         updateProductAverageRating(product);
@@ -164,7 +165,7 @@ public class ReviewServiceImpl implements ReviewService {
         List<Order> orders = orderRepository.findByCustomer(customer);
         
         for (Order order : orders) {
-            if (order.getStatus() != null && "DELIVERED".equals(order.getStatus().toString())) {
+            if (order.getStatus() == Order.OrderStatus.DELIVERED) {
                 List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
                 for (OrderItem item : orderItems) {
                     if (item.getProduct().getId().equals(product.getId())) {

@@ -37,15 +37,16 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public Register_LoginResponseDto register(RegistationDto dto) {
-        log.info("Registering new user with email: {}", dto.getEmail());
+        String email = dto.getEmail().trim().toLowerCase();
+        log.info("Registering new user with email: {}", email);
         
-        if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new DuplicateResourceException("User with this email already exists: " + dto.getEmail());
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new DuplicateResourceException("User with this email already exists: " + email);
         }
 
         User user = new User();
-        user.setName(dto.getName());
-        user.setEmail(dto.getEmail());
+        user.setName(dto.getName().trim());
+        user.setEmail(email);
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setRole(User.Role.USER);
         user.setActive(true);
@@ -58,24 +59,25 @@ public class AuthServiceImpl implements AuthService {
         customerRepository.save(customer);
         log.info("Customer created for user ID: {}", savedUser.getId());
 
-        return mapToDto(savedUser, customer);
+        return mapToDto(savedUser);
     }
 
     @Override
     @Transactional
     public AuthResponseDto login(LoginRequest request) {
-        log.info("Login attempt for user: {}", request.getEmail());
+        String email = request.getEmail().trim().toLowerCase();
+        log.info("Login attempt for user: {}", email);
         
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + request.getEmail()));
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
         if (!user.isActive()) {
-            log.warn("Login attempt for inactive user: {}", request.getEmail());
+            log.warn("Login attempt for inactive user: {}", email);
             throw new InvalidRequestException("Your account is inactive. Please contact support.");
         }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            log.warn("Invalid password attempt for user: {}", request.getEmail());
+            log.warn("Invalid password attempt for user: {}", email);
             throw new InvalidRequestException("Invalid Credentials");
         }
 
@@ -83,16 +85,9 @@ public class AuthServiceImpl implements AuthService {
         
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
 
-        Register_LoginResponseDto userDto;
-        if (user.getRole() == User.Role.ADMIN) {
-            userDto = mapAdminToDto(user);
-        } else {
-            Customer customer = customerRepository.findByUser(user)
-                    .orElseThrow(() -> new ResourceNotFoundException("Customer not found for user: " + user.getEmail()));
-            userDto = mapToDto(user, customer);
-        }
+        Register_LoginResponseDto userDto = mapToDto(user);
 
-        log.info("User logged in successfully: {}", request.getEmail());
+        log.info("User logged in successfully: {}", email);
         return new AuthResponseDto(userDto, accessToken, refreshToken.getToken());
     }
 
@@ -106,15 +101,7 @@ public class AuthServiceImpl implements AuthService {
                 .map(RefreshToken::getUser)
                 .map(user -> {
                     String newAccessToken = jwtutil.generateAccessToken(user.getEmail(), user.getRole().name());
-
-                    Register_LoginResponseDto userDto;
-                    if (user.getRole() == User.Role.ADMIN) {
-                        userDto = mapAdminToDto(user);
-                    } else {
-                        Customer customer = customerRepository.findByUser(user)
-                                .orElseThrow(() -> new ResourceNotFoundException("Customer not found for user: " + user.getEmail()));
-                        userDto = mapToDto(user, customer);
-                    }
+                    Register_LoginResponseDto userDto = mapToDto(user);
 
                     log.info("Token refreshed successfully for user: {}", user.getEmail());
                     return new AuthResponseDto(userDto, newAccessToken, requestRefreshToken);
@@ -134,17 +121,7 @@ public class AuthServiceImpl implements AuthService {
         log.info("User logged out successfully: {}", email);
     }
 
-    private Register_LoginResponseDto mapToDto(User user, Customer customer) {
-        Register_LoginResponseDto dto = new Register_LoginResponseDto();
-        dto.setId(user.getId());
-        dto.setName(user.getName());
-        dto.setEmail(user.getEmail());
-        dto.setRole(user.getRole());
-        dto.setActive(user.isActive());
-        return dto;
-    }
-
-    private Register_LoginResponseDto mapAdminToDto(User user) {
+    private Register_LoginResponseDto mapToDto(User user) {
         Register_LoginResponseDto dto = new Register_LoginResponseDto();
         dto.setId(user.getId());
         dto.setName(user.getName());

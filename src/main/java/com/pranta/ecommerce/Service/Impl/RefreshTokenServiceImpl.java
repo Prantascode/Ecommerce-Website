@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.pranta.ecommerce.Entity.RefreshToken;
 import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
+import com.pranta.ecommerce.Exceptions.UnauthorizedAccessException;
 import com.pranta.ecommerce.Repository.RefreshTokenRepository;
 import com.pranta.ecommerce.Repository.UserRepository;
 import com.pranta.ecommerce.Service.RefreshTokenService;
@@ -30,6 +31,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private Long refreshTokenDurationSec;
 
     @Override
+    @Transactional
     public RefreshToken createRefreshToken(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
@@ -62,7 +64,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
             deleteRefreshToken(token);
             log.warn("Refresh token expired: {}", token.getToken());
-            throw new RuntimeException("Refresh token was expired. Please make a new login request");
+            throw new UnauthorizedAccessException("Refresh token was expired. Please make a new login request");
         }
         log.debug("Refresh token verified successfully: {}", token.getToken());
         return token;

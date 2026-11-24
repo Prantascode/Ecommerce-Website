@@ -59,11 +59,12 @@ public class DiscountServiceImpl implements DiscountService {
         Product product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + dto.getProductId()));
 
-        boolean wasManuallyDisabled = !discount.getActive();
+        boolean wasManuallyDisabled = Boolean.FALSE.equals(discount.getActive()) || Boolean.TRUE.equals(discount.getManuallyDisabled());
         mapDtoToEntity(dto, discount, product);
         
         if (wasManuallyDisabled && (dto.getActive() == null || !dto.getActive())) {
             discount.setActive(false);
+            discount.setManuallyDisabled(true);
         }
         
         validateDiscountDates(discount);
@@ -137,6 +138,7 @@ public class DiscountServiceImpl implements DiscountService {
                 .orElseThrow(() -> new ResourceNotFoundException("Discount not found with ID: " + id));
         
         discount.setActive(active);
+        discount.setManuallyDisabled(!active);
         log.info("Discount {} manually {} by admin", id, active ? "activated" : "deactivated");
         
         return toResponseDto(discountRepository.save(discount));
@@ -161,15 +163,23 @@ public class DiscountServiceImpl implements DiscountService {
         
         List<Discount> pendingDiscounts = discountRepository.findPendingDiscountsToActivate();
         if (!pendingDiscounts.isEmpty()) {
-            log.info("Activating {} pending discounts", pendingDiscounts.size());
-            pendingDiscounts.forEach(discount -> {
+            List<Discount> toActivate = new java.util.ArrayList<>();
+            for (Discount discount : pendingDiscounts) {
+                // Do not auto-activate discounts manually disabled by admin
+                if (Boolean.TRUE.equals(discount.getManuallyDisabled())) {
+                    continue;
+                }
                 if (isDiscountValid(discount)) {
                     discount.setActive(true);
+                    toActivate.add(discount);
                     log.debug("Discount '{}' (ID: {}) activated as scheduled", 
                              discount.getName(), discount.getId());
                 }
-            });
-            discountRepository.saveAll(pendingDiscounts);
+            }
+            if (!toActivate.isEmpty()) {
+                log.info("Activating {} pending discounts", toActivate.size());
+                discountRepository.saveAll(toActivate);
+            }
         }
     }
 
@@ -182,8 +192,10 @@ public class DiscountServiceImpl implements DiscountService {
         
         if (dto.getActive() != null) {
             discount.setActive(dto.getActive());
+            discount.setManuallyDisabled(!dto.getActive());
         } else {
             discount.setActive(computeActive(discount, LocalDateTime.now()));
+            discount.setManuallyDisabled(false);
         }
     }
 

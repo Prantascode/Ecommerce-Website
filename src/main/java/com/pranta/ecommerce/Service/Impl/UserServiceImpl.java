@@ -168,12 +168,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public Page<UserResponseDto> getActiveAndDeactiveUser(Boolean active,Pageable pageable){
 
-        return userRepository.findByActive(active,pageable).map(User -> {
-            Customer customer = customerRepository.findByUser(User).orElse(null);
-            return mapToUserResponseDto(User, customer);
+        return userRepository.findByActive(active,pageable).map(user -> {
+            Customer customer = null;
+            if (user.getRole() != User.Role.ADMIN) {
+                customer = customerRepository.findByUser(user).orElse(null);
+            }
+            return mapToUserResponseDto(user, customer);
         });
-
-               
     }
     
     // Single mapping method - always returns UserResponseDto

@@ -6,6 +6,7 @@ import com.pranta.ecommerce.Dto.Request.CustomerRequestDto;
 import com.pranta.ecommerce.Dto.Response.CustomerResponseDto;
 import com.pranta.ecommerce.Entity.Customer;
 import com.pranta.ecommerce.Entity.User;
+import com.pranta.ecommerce.Exceptions.DuplicateResourceException;
 import com.pranta.ecommerce.Exceptions.InvalidRequestException;
 import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
 import com.pranta.ecommerce.Repository.CustomerRepository;
@@ -57,7 +58,7 @@ public class CustomerServiceImpl implements CustomerService {
             String phone = dto.getPhone().trim();
 
             if (customerRepository.existsByPhoneAndIdNot(phone, customer.getId())) {
-                throw new InvalidRequestException("Phone number already exists: " + phone);
+                throw new DuplicateResourceException("Phone number already exists: " + phone);
             }
 
             customer.setPhone(phone);

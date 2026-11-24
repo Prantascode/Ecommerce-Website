@@ -1,6 +1,5 @@
 package com.pranta.ecommerce.Service.Impl;
 
-
 import java.util.Collections;
 import java.util.List;
 
@@ -11,7 +10,7 @@ import com.pranta.ecommerce.Dto.Response.WishlistResponseDto;
 import com.pranta.ecommerce.Entity.Product;
 import com.pranta.ecommerce.Entity.User;
 import com.pranta.ecommerce.Entity.Wishlist;
-import com.pranta.ecommerce.Exceptions.InvalidRequestException;
+import com.pranta.ecommerce.Exceptions.DuplicateResourceException;
 import com.pranta.ecommerce.Exceptions.ResourceNotFoundException;
 import com.pranta.ecommerce.Exceptions.UnauthorizedAccessException;
 import com.pranta.ecommerce.Repository.ProductRepository;
@@ -19,22 +18,28 @@ import com.pranta.ecommerce.Repository.UserRepository;
 import com.pranta.ecommerce.Repository.WishlistRepository;
 import com.pranta.ecommerce.Service.WishlistService;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service 
 @RequiredArgsConstructor
-public class WishlistServiceImpl implements WishlistService{
+public class WishlistServiceImpl implements WishlistService {
     private final WishlistRepository wishlistRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
 
-    public WishlistResponseDto createWishlist(String email,Long productId,WishlistRequestDto request) {
-
+    @Override
+    @Transactional
+    public WishlistResponseDto createWishlist(String email, Long productId, WishlistRequestDto request) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+
+        if (wishlistRepository.existsByUserIdAndProductId(user.getId(), productId)) {
+            throw new DuplicateResourceException("Product is already in your wishlist");
+        }
 
         Wishlist wishlist = new Wishlist();
         wishlist.setWishlistName(request.getWishlistName());
@@ -46,8 +51,8 @@ public class WishlistServiceImpl implements WishlistService{
         return mapToResponse(saved);
     } 
 
-    public WishlistResponseDto getWishlistById(Long id,String email){
-
+    @Override
+    public WishlistResponseDto getWishlistById(Long id, String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -58,8 +63,9 @@ public class WishlistServiceImpl implements WishlistService{
         }
         return mapToResponse(wishlist);
     }
-    public List<WishlistResponseDto> getAllWishlists(String email){
-       
+
+    @Override
+    public List<WishlistResponseDto> getAllWishlists(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -73,13 +79,14 @@ public class WishlistServiceImpl implements WishlistService{
                 .toList();
     }
 
-    public WishlistResponseDto updateWishlist(String email,Long productId,
-            WishlistRequestDto request){
+    @Override
+    @Transactional
+    public WishlistResponseDto updateWishlist(String email, Long productId, WishlistRequestDto request) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        Wishlist wishlist = wishlistRepository.findWishlistsByUserId(user.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Wishlist not found"));
+        Wishlist wishlist = wishlistRepository.findByUserIdAndProductId(user.getId(), productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Wishlist item not found for this product"));
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
@@ -92,16 +99,17 @@ public class WishlistServiceImpl implements WishlistService{
         return mapToResponse(updatedWishlist);
     }
 
-    public String deleteWishlist(String email,Long id){
-
+    @Override
+    @Transactional
+    public String deleteWishlist(String email, Long id) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Wishlist wishlist = wishlistRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Wishlist not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Wishlist not found"));
 
         if (!wishlist.getUser().getId().equals(user.getId())) {
-            throw new InvalidRequestException("Access Denied");
+            throw new UnauthorizedAccessException("Access Denied");
         }
         wishlistRepository.delete(wishlist);
 
@@ -109,7 +117,6 @@ public class WishlistServiceImpl implements WishlistService{
     }
     
     private WishlistResponseDto mapToResponse(Wishlist wishlist) {
-
         WishlistResponseDto dto = new WishlistResponseDto();
 
         dto.setId(wishlist.getId());

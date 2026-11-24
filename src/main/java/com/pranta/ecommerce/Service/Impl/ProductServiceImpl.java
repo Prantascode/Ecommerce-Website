@@ -40,6 +40,7 @@ public class ProductServiceImpl implements ProductService {
     private final BrandRepository brandRepository;
 
     @Override
+    @Transactional
     public ProductResponseDto createProduct(ProductRequestDto dto) {
         log.info("Creating new product: {}", dto.getName());
 
@@ -56,7 +57,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         Product product = new Product();
-        product.setName(dto.getName());
+        product.setName(productName);
         product.setDescription(dto.getDescription());
         product.setPrice(dto.getPrice());
         product.setImageUrl(dto.getImageUrl());
@@ -142,10 +143,6 @@ public class ProductServiceImpl implements ProductService {
         log.debug("Fetching products with active discounts");
         
         Page<Product> products = productRepository.findAvailableProductsWithActiveDiscount(pageable);
-
-        if (products.isEmpty()) {
-            throw new ResourceNotFoundException("No Discounted Product Available");
-        }
         return products.map(this::mapToResponse);
     }
 
@@ -154,10 +151,6 @@ public class ProductServiceImpl implements ProductService {
         log.debug("Fetching Available products");
         
         Page<Product> products = productRepository.findByAvailableProduct(pageable);
-
-        if (products.isEmpty()) {
-            throw new ResourceNotFoundException("No Product Available");
-        }
         return products.map(this::mapToResponse);
     }
 
@@ -179,14 +172,7 @@ public class ProductServiceImpl implements ProductService {
     public Page<ProductResponseDto> getStockLimitResponse(int threshold,Pageable pageable) {
         log.debug("Fetching products with stock less than or equal to: {}", threshold);
         Page<Product> products = productRepository.findByStockLessThanEqual(threshold,pageable);
-
-        if (products.isEmpty()) {
-            log.warn("No products found with stock <= {}", threshold);
-            throw new ResourceNotFoundException("There are no low stock products");
-        }
-
         return products.map(this::mapToResponse);
-                    
     }
 
     @Override
@@ -245,6 +231,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public void deleteProduct(Long id) {
         log.info("Deleting product with id: {}", id);
         

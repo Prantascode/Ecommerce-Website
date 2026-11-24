@@ -1,7 +1,5 @@
 package com.pranta.ecommerce.Service.Impl;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -73,7 +71,6 @@ public class OrderServiceImpl implements OrderService {
         order.setCustomer(cart.getCustomer());
         order.setTotalAmount(cart.getGrandTotal());
         order.setStatus(OrderStatus.PENDING);
-        order.setOrderDate(LocalDateTime.now());
 
         Order savedOrder = orderRepository.save(order);
         log.info("Order created with ID: {}", savedOrder.getId());
@@ -92,10 +89,6 @@ public class OrderServiceImpl implements OrderService {
         
         List<OrderItemResponseDto> orderItemDtos = orderItemService
                 .convertCartItemToOrderItem(cart.getItems(), savedOrder);
-
-        cart.getItems().clear();
-        cart.setGrandTotal(BigDecimal.ZERO);
-        cartRepository.save(cart);
 
         log.info("Order created successfully with ID: {} for user: {}", savedOrder.getId(), email);
         return mapToResponse(savedOrder, orderItemDtos);

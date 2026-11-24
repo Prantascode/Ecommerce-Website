@@ -81,6 +81,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public CartResponseDto getCartByUserEmail(String email) {
         User user = getUserByEmail(email);
         Customer customer = getCustomerByUser(user);
@@ -209,10 +210,20 @@ public class CartServiceImpl implements CartService {
             }
             
             if (refreshedProduct.getStock() < item.getQuantity()) {
-                cartItemRepository.delete(item);
-                removedCount++;
-                changed = true;
-                log.debug("Removed item {} - insufficient stock", item.getId());
+                if (refreshedProduct.getStock() > 0) {
+                    item.setQuantity(refreshedProduct.getStock());
+                    BigDecimal currentPrice = calculateCurrentProductPrice(refreshedProduct);
+                    item.setPrice(currentPrice);
+                    item.setTotalPrice(currentPrice.multiply(BigDecimal.valueOf(refreshedProduct.getStock())));
+                    cartItemRepository.save(item);
+                    changed = true;
+                    log.info("Adjusted quantity of item {} to available stock {}", item.getId(), refreshedProduct.getStock());
+                } else {
+                    cartItemRepository.delete(item);
+                    removedCount++;
+                    changed = true;
+                    log.debug("Removed item {} - insufficient stock", item.getId());
+                }
                 continue;
             }
            
@@ -410,7 +421,7 @@ public class CartServiceImpl implements CartService {
         LocalDateTime now = LocalDateTime.now();
         
         Discount bestDiscount = product.getDiscounts().stream()
-                .filter(discount -> discount.getActive() && discount.isDiscountCurrentlyActive())
+                .filter(discount -> Boolean.TRUE.equals(discount.getActive()) && discount.isDiscountCurrentlyActive())
                 .filter(discount -> {
                     LocalDateTime start = discount.getDiscountStartDate();
                     LocalDateTime end = discount.getDiscountEndDate();
