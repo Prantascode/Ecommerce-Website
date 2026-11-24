@@ -22,6 +22,7 @@ import com.pranta.ecommerce.Util.PaginationHelper;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.PutMapping;
@@ -30,7 +31,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/users")
 @Tag(
     name = "Users",
     description = "Users Management API's"
@@ -72,11 +73,11 @@ public class UserController {
 
     @Operation(
         summary = "Get user by email",
-        description = "Get user by Id"
+        description = "Return user info using email"
     )
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/email/{email}")
-    public ResponseEntity<UserResponseDto> getUserByEmailId(@PathVariable String email){
+    public ResponseEntity<UserResponseDto> getUserByEmail(@PathVariable String email){
         return ResponseEntity.ok(userService.getUserByEmail(email));
     }
 
@@ -99,11 +100,11 @@ public class UserController {
     }
 
     @Operation(
-        summary = "Get my_profile",
-        description = "Get users own profile"
+        summary = "Get my profile",
+        description = "Get user's own profile"
     )
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    @GetMapping("/my_profile")
+    @GetMapping({"/me", "/my_profile"})
     public ResponseEntity<UserResponseDto> myProfile(Authentication authentication){
         String email = authentication.getName();
         return ResponseEntity.ok(userService.myProfile(email));
@@ -111,56 +112,57 @@ public class UserController {
 
     @Operation(
         summary = "Update Email",
-        description = "update users email"
+        description = "Update user's email"
     )
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PutMapping("/me/email")
     public ResponseEntity<String> updateEmail(Authentication authentication,
-        @RequestBody UpdateEmailDto dto){
+        @Valid @RequestBody UpdateEmailDto dto){
             String email = authentication.getName();
             return ResponseEntity.ok(userService.updateMyEmail(email, dto));
     }
+
     @Operation(
         summary = "Update Password",
-        description = "update users Password"
+        description = "Update user's password"
     )
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PutMapping("/me/password")
     public ResponseEntity<String> updatePassword(Authentication authentication,
-        @RequestBody PasswordUpdateDto dto){
+        @Valid @RequestBody PasswordUpdateDto dto){
             String email = authentication.getName();
             return ResponseEntity.ok(userService.updatePassword(email, dto.getNewPassword(), dto.getOldPassword()));
     }
 
     @Operation(
         summary = "Deactivate users",
-        description = "Deactivate users"
+        description = "Deactivate user by ID"
     )
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/deactivate")
     public ResponseEntity<String> deactivateUser(@PathVariable Long id) {
         userService.deactivateUser(id);
-       return ResponseEntity.ok("User Deactivated");
+        return ResponseEntity.ok("User deactivated successfully");
     }
 
     @Operation(
         summary = "Activate users",
-        description = "Activate users"
+        description = "Activate user by ID"
     )
-    @PutMapping("/{id}/activate")
     @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}/activate")
     public ResponseEntity<String> activateUser(@PathVariable Long id) {
         userService.activateUser(id);
         return ResponseEntity.ok("User activated successfully");
     }
 
     @Operation(
-        summary = "Get Active and Deactive users",
-        description = "Get All Active and Deactive users"
+        summary = "Get active and inactive users",
+        description = "Get all active or inactive users"
     )
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/active/{active}")
-    public ResponseEntity<PageResponseDto<UserResponseDto>> getActiveAndDeactiveUsers(@PathVariable Boolean active,
+    public ResponseEntity<PageResponseDto<UserResponseDto>> getActiveAndInactiveUsers(@PathVariable Boolean active,
         @RequestParam(defaultValue = "1") int page,
         @RequestParam(defaultValue = "10") int size,
         @RequestParam(defaultValue = "id") String sortBy,

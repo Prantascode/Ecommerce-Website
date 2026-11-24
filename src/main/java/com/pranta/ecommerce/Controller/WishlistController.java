@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pranta.ecommerce.Dto.Request.WishlistRequestDto;
 import com.pranta.ecommerce.Dto.Response.WishlistResponseDto;
-import com.pranta.ecommerce.Service.Impl.WishlistServiceImpl;
+import com.pranta.ecommerce.Service.WishlistService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,14 +26,14 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/wishlist")
+@RequestMapping("/api/wishlists")
 @Tag(
     name = "Wishlist",
     description = "Wishlist Management API's"
 )
 public class WishlistController {
     
-    private final WishlistServiceImpl wishlistService;
+    private final WishlistService wishlistService;
 
     @Operation(
         summary = "Create wishlist",
@@ -56,7 +56,7 @@ public class WishlistController {
     )
     @GetMapping("/{wishlistId}")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<WishlistResponseDto> getWishlist(Long wishlistId,Authentication authentication){
+    public ResponseEntity<WishlistResponseDto> getWishlist(@PathVariable Long wishlistId,Authentication authentication){
         String email = authentication.getName();
 
         WishlistResponseDto response = wishlistService.getWishlistById(wishlistId, email);

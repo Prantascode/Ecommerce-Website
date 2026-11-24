@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/brand")
+@RequestMapping("/api/brands")
 @Tag(
     name = "Brand",
     description = "Brand Management API's"

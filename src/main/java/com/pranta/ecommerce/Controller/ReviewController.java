@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/review")
+@RequestMapping("/api/reviews")
 @Tag(
     name = "Product Review",
     description = "Product Review Management API's"
@@ -60,7 +60,7 @@ public class ReviewController {
 
         ReviewResponseDto response = reviewService.getOwnReview(email, productId);
 
-        return ResponseEntity.status(HttpStatus.FOUND).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Operation(
@@ -72,7 +72,7 @@ public class ReviewController {
 
         List<ReviewResponseDto> response = reviewService.getAllReview(productId);
 
-        return ResponseEntity.status(HttpStatus.FOUND).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Operation(
