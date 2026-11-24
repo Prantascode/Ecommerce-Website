@@ -6,6 +6,7 @@ import java.util.function.Function;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -19,18 +20,23 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Jwtutil {
 
-    private final String SECRET_STRING = "ThisIsAReallyLongSuperSecretKeyForHS256JWT1234567890";
-    private final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_STRING.getBytes(StandardCharsets.UTF_8));
+    private final SecretKey secretKey;
+    private final long accessTokenExpiration;
 
-    private final long accessTokenExpairation = 1000L*60*60;
+    public Jwtutil(
+            @Value("${app.jwt.secret:ThisIsAReallyLongSuperSecretKeyForHS256JWT1234567890}") String secretString,
+            @Value("${app.jwt.expiration-ms:3600000}") long accessTokenExpiration) {
+        this.secretKey = Keys.hmacShaKeyFor(secretString.getBytes(StandardCharsets.UTF_8));
+        this.accessTokenExpiration = accessTokenExpiration;
+    }
 
     public String generateAccessToken(String email, String role){
         return Jwts.builder()
                 .subject(email)
-                .claim("role",role)
+                .claim("role", role)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + accessTokenExpairation))
-                .signWith(SECRET_KEY)
+                .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
+                .signWith(secretKey)
                 .compact();
     }
     public String extractEmail(String token){
@@ -44,7 +50,7 @@ public class Jwtutil {
 
     private Claims extractAllClaims(String token) {
        return Jwts.parser()
-                .verifyWith(SECRET_KEY)
+                .verifyWith(secretKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();      
