@@ -14,4 +14,5 @@ public class SSLCommerzConfig {
     private String baseUrl;
     private String initUrl;
     private String validationUrl;
+    private String callbackUrl;
 }

@@ -1,5 +1,6 @@
 package com.pranta.ecommerce.Config;
 
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -20,11 +21,11 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found" + email));
+            .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
         
-    if (!user.isActive()) {
-        throw new RuntimeException("User account is deactivated");
-    }
+        if (!user.isActive()) {
+            throw new DisabledException("User account is deactivated");
+        }
 
         return new CustomUserDetails(user);
     }
